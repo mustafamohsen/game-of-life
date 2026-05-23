@@ -6,6 +6,7 @@ import { CanvasRenderer } from '../rendering/CanvasRenderer';
 import { LIFE_PATTERNS, type LifePattern } from './Patterns';
 import { PlaySession } from './PlaySession';
 import type { StatsSample } from './StatsTimeline';
+import { StatsGraphPanel } from './StatsGraphPanel';
 
 export class GameController {
   private config: GameConfig = structuredClone(DEFAULT_CONFIG);
@@ -14,6 +15,7 @@ export class GameController {
   private status: HTMLElement;
   private playButton: HTMLButtonElement;
   private shell: HTMLElement;
+  private statsPanel: StatsGraphPanel;
   private latestCells: Uint8Array | undefined;
   private latestStatsHistory: readonly StatsSample[] = [];
   private pendingPattern: LifePattern | undefined;
@@ -25,6 +27,7 @@ export class GameController {
     this.status = root.querySelector<HTMLElement>('#status')!;
     this.playButton = root.querySelector<HTMLButtonElement>('#play')!;
     this.renderer = new CanvasRenderer(canvas, this.config);
+    this.statsPanel = new StatsGraphPanel(root);
     this.session = new PlaySession(
       this.config,
       (kind, config) => this.createEngine(kind, config),
@@ -416,10 +419,31 @@ export class GameController {
         <div class="stage-chrome">
           <button id="sidebar-toggle" class="sidebar-toggle" type="button" aria-expanded="true" aria-controls="control-panel" aria-label="Hide controls" data-shortcut="F">‹</button>
           <span>field monitor</span>
+          <button id="stats-toggle" class="stats-toggle" type="button" aria-expanded="false" aria-controls="stats-panel">Stats</button>
         </div>
         <div class="canvas-frame">
           <canvas id="life-canvas" aria-label="Game of Life grid"></canvas>
         </div>
+        <aside id="stats-panel" class="stats-panel" hidden>
+          <header>
+            <span>Live stats</span>
+            <small id="stats-samples">0 samples</small>
+          </header>
+          <div class="stats-readout">
+            <span>Pop <b id="stats-population">0</b></span>
+            <span>Births <b id="stats-births">0</b></span>
+            <span>Deaths <b id="stats-deaths">0</b></span>
+            <span>Δ <b id="stats-delta">+0</b></span>
+          </div>
+          <section class="chart-card">
+            <span>Population</span>
+            <svg viewBox="0 0 320 96" preserveAspectRatio="none" aria-hidden="true"><path id="population-path"></path></svg>
+          </section>
+          <section class="chart-card compact">
+            <span>Births / deaths</span>
+            <svg viewBox="0 0 320 72" preserveAspectRatio="none" aria-hidden="true"><path id="births-path" class="births"></path><path id="deaths-path" class="deaths"></path></svg>
+          </section>
+        </aside>
       </section>
 
       <dialog id="pattern-library" class="pattern-library" aria-labelledby="pattern-library-title">
