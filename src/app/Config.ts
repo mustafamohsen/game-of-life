@@ -37,9 +37,9 @@ export const DEFAULT_CONFIG: GameConfig = {
   engine: 'wasm',
   showGrid: true,
   colors: {
-    background: '#07101c',
-    alive: '#c8d2dc',
-    grid: 'rgba(170, 190, 210, 0.075)',
+    background: '#07110f',
+    alive: '#a8ddd0',
+    grid: 'rgba(169, 189, 180, 0.075)',
   },
 };
 
