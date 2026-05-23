@@ -21,6 +21,7 @@ It has a TypeScript UI, a canvas renderer, and a Rust WebAssembly engine for the
 - `C`: clear the world
 - `[` / `]`: slower / faster
 - `F`: collapse or expand the controls
+- `S`: show or hide the stats panel
 
 ## Running it locally
 

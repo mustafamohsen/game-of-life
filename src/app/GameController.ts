@@ -227,6 +227,9 @@ export class GameController {
     } else if (key === 'f') {
       event.preventDefault();
       this.toggleSidebar();
+    } else if (key === 's') {
+      event.preventDefault();
+      this.statsPanel.togglePanel();
     } else if (key === 'escape' && this.pendingPattern) {
       event.preventDefault();
       this.cancelPendingPattern();
@@ -445,7 +448,7 @@ export class GameController {
         <div class="stage-chrome">
           <button id="sidebar-toggle" class="sidebar-toggle" type="button" aria-expanded="true" aria-controls="control-panel" aria-label="Hide controls" data-shortcut="F">‹</button>
           <span>field monitor</span>
-          <button id="stats-toggle" class="stats-toggle" type="button" aria-expanded="false" aria-controls="stats-panel">Stats</button>
+          <button id="stats-toggle" class="stats-toggle" type="button" aria-expanded="false" aria-controls="stats-panel" data-shortcut="S">Stats</button>
         </div>
         <div class="canvas-frame">
           <canvas id="life-canvas" aria-label="Game of Life grid"></canvas>

@@ -39,7 +39,7 @@ export class StatsGraphPanel {
     });
   }
 
-  private togglePanel() {
+  togglePanel() {
     const hidden = this.panel.toggleAttribute('hidden');
     this.toggle.setAttribute('aria-expanded', String(!hidden));
   }
