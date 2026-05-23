@@ -40,6 +40,7 @@ export class GameController {
       },
     );
     this.bindControls(canvas);
+    this.bindAutoFit();
   }
 
   async start() {
@@ -115,7 +116,8 @@ export class GameController {
         else if (id === 'density') this.config.randomDensity = v / 100;
         else this.config[id] = v;
         this.root.querySelector<HTMLElement>(`#${id}-value`)!.textContent = String(id === 'density' ? `${v}%` : v);
-        if (['width', 'height', 'cellSize'].includes(id)) await this.rebuildAndResize();
+        if (id === 'cellSize') await this.fitFieldToViewport();
+        else if (['width', 'height'].includes(id)) await this.rebuildAndResize();
         if (id === 'speed') this.session.restartTimer();
       };
     }
@@ -148,6 +150,32 @@ export class GameController {
   }
 
   private async rebuildAndRandomize() {
+    await this.rebuildAndResize();
+    this.session.randomize();
+  }
+
+  private bindAutoFit() {
+    const stage = this.root.querySelector<HTMLElement>('.stage')!;
+    const observer = new ResizeObserver(() => this.fitFieldToViewport());
+    observer.observe(stage);
+    queueMicrotask(() => this.fitFieldToViewport());
+  }
+
+  private async fitFieldToViewport() {
+    const frame = this.root.querySelector<HTMLElement>('.canvas-frame')!;
+    const styles = getComputedStyle(frame);
+    const availableWidth = frame.clientWidth - parseFloat(styles.paddingLeft) - parseFloat(styles.paddingRight);
+    const availableHeight = frame.clientHeight - parseFloat(styles.paddingTop) - parseFloat(styles.paddingBottom);
+    if (availableWidth <= 0 || availableHeight <= 0) return;
+    const nextWidth = Math.max(20, Math.floor(availableWidth / this.config.cellSize));
+    const nextHeight = Math.max(20, Math.floor(availableHeight / this.config.cellSize));
+    if (nextWidth === this.config.width && nextHeight === this.config.height) return;
+    this.config.width = nextWidth;
+    this.config.height = nextHeight;
+    this.root.querySelector<HTMLInputElement>('#width')!.value = String(Math.min(nextWidth, 220));
+    this.root.querySelector<HTMLInputElement>('#height')!.value = String(Math.min(nextHeight, 160));
+    this.root.querySelector<HTMLElement>('#width-value')!.textContent = String(nextWidth);
+    this.root.querySelector<HTMLElement>('#height-value')!.textContent = String(nextHeight);
     await this.rebuildAndResize();
     this.session.randomize();
   }
