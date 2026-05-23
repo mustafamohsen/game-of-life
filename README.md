@@ -6,7 +6,7 @@ It has a TypeScript UI, a canvas renderer, and a Rust WebAssembly engine for the
 
 ## What you can do
 
-- Start, pause, clear, and randomize the world
+- Run, pause, clear, and randomize the world
 - Paint cells by clicking or dragging on the canvas
 - Change the grid size, cell size, speed, density, wrapping, and grid overlay
 - Switch between a few rule sets, including Conway, HighLife, Seeds, and Day & Night
@@ -16,7 +16,7 @@ It has a TypeScript UI, a canvas renderer, and a Rust WebAssembly engine for the
 
 ## Keyboard shortcuts
 
-- `Space` or `K`: play / pause
+- `Space` or `K`: run / pause
 - `R`: randomize the world
 - `C`: clear the world
 - `[` / `]`: slower / faster

@@ -246,7 +246,7 @@ export class GameController {
   }
 
   private syncPlayButton() {
-    this.playButton.textContent = this.session.isPlaying() ? 'Pause' : 'Play';
+    this.playButton.textContent = this.session.isPlaying() ? 'Pause' : 'Run';
     this.playButton.dataset.state = this.session.isPlaying() ? 'playing' : 'paused';
   }
 
@@ -393,7 +393,7 @@ export class GameController {
         <section class="control-card command-card">
           <div class="card-label">Transport</div>
           <div class="transport-grid">
-            <button id="play" class="command primary" type="button" data-state="paused" data-shortcut="Space / K"><span>Play</span></button>
+            <button id="play" class="command primary" type="button" data-state="paused" data-shortcut="Space / K"><span>Run</span></button>
             <button id="random" class="command" type="button" data-shortcut="R"><span>Randomize</span></button>
             <button id="clear" class="command danger" type="button" data-shortcut="C"><span>Clear</span></button>
           </div>
