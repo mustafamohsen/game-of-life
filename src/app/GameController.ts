@@ -255,10 +255,10 @@ export class GameController {
         <section class="control-card command-card">
           <div class="card-label">Transport</div>
           <div class="transport-grid">
-            <button id="play" class="command primary" type="button" data-state="paused" title="Space or K"><span>Play</span><kbd>Space</kbd></button>
+            <button id="play" class="command primary" type="button" data-state="paused" data-shortcut="Space / K"><span>Play</span></button>
             <button id="step" class="command" type="button"><span>Step</span></button>
-            <button id="random" class="command" type="button" title="R"><span>Seed</span><kbd>R</kbd></button>
-            <button id="clear" class="command danger" type="button" title="X or Backspace"><span>Wipe</span><kbd>X</kbd></button>
+            <button id="random" class="command" type="button" data-shortcut="R"><span>Seed</span></button>
+            <button id="clear" class="command danger" type="button" data-shortcut="X / Backspace"><span>Wipe</span></button>
           </div>
         </section>
 
@@ -280,7 +280,7 @@ export class GameController {
 
         <section class="control-card slider-bank">
           <div class="card-label">Evolution</div>
-          <label class="control-slider hot"><span>Tempo <output id="speed-value">${this.config.tickRateMs}</output> ms <kbd>[/]</kbd></span><input id="speed" type="range" min="10" max="500" value="${this.config.tickRateMs}"></label>
+          <label class="control-slider hot" data-shortcut="[ slower · ] faster"><span>Tempo <output id="speed-value">${this.config.tickRateMs}</output> ms</span><input id="speed" type="range" min="10" max="500" value="${this.config.tickRateMs}"></label>
           <label class="control-slider hot"><span>Seed density <output id="density-value">${Math.round(this.config.randomDensity*100)}%</output></span><input id="density" type="range" min="1" max="80" value="${Math.round(this.config.randomDensity*100)}"></label>
           <div class="toggle-row">
             <label class="switch"><input id="wrap" type="checkbox" checked><span></span><b>Wrap edges</b></label>
