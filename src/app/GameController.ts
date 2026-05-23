@@ -63,7 +63,6 @@ export class GameController {
 
   private bindControls(canvas: HTMLCanvasElement) {
     this.playButton.onclick = () => this.togglePlayback();
-    this.root.querySelector<HTMLButtonElement>('#step')!.onclick = () => this.session.step();
     this.root.querySelector<HTMLButtonElement>('#clear')!.onclick = () => this.clearWorld();
     this.root.querySelector<HTMLButtonElement>('#random')!.onclick = () => this.randomizeWorld();
     this.root.querySelector<HTMLButtonElement>('#sidebar-toggle')!.onclick = () => this.toggleSidebar();
@@ -213,7 +212,7 @@ export class GameController {
     if (key === ' ' || key === 'k') {
       event.preventDefault();
       this.togglePlayback();
-    } else if (key === 'x' || key === 'backspace') {
+    } else if (key === 'c') {
       event.preventDefault();
       this.clearWorld();
     } else if (key === 'r') {
@@ -395,9 +394,8 @@ export class GameController {
           <div class="card-label">Transport</div>
           <div class="transport-grid">
             <button id="play" class="command primary" type="button" data-state="paused" data-shortcut="Space / K"><span>Play</span></button>
-            <button id="step" class="command" type="button"><span>Step</span></button>
-            <button id="random" class="command" type="button" data-shortcut="R"><span>Seed</span></button>
-            <button id="clear" class="command danger" type="button" data-shortcut="X / Backspace"><span>Wipe</span></button>
+            <button id="random" class="command" type="button" data-shortcut="R"><span>Randomize</span></button>
+            <button id="clear" class="command danger" type="button" data-shortcut="C"><span>Clear</span></button>
           </div>
         </section>
 
