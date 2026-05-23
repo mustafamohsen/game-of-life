@@ -232,11 +232,11 @@ export class GameController {
           <div class="choice-strip rule-strip" role="group" aria-label="Rules">${ruleButtons}</div>
         </section>
 
-        <section class="control-card engine-card">
-          <div class="card-label">Engine</div>
-          <div class="choice-strip two-up" role="group" aria-label="Engine">
-            <button type="button" class="choice is-active" data-engine="wasm" aria-pressed="true"><span>Rust</span><small>WASM core</small></button>
-            <button type="button" class="choice" data-engine="js" aria-pressed="false"><span>TypeScript</span><small>fallback</small></button>
+        <section class="engine-card">
+          <span class="engine-label">engine</span>
+          <div class="engine-toggle" role="group" aria-label="Engine">
+            <button type="button" class="choice is-active" data-engine="wasm" aria-pressed="true">Rust</button>
+            <button type="button" class="choice" data-engine="js" aria-pressed="false">TS</button>
           </div>
         </section>
       </aside>
