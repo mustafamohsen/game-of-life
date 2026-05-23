@@ -11,6 +11,7 @@ export type GameConfig = {
   birthRules: number[];
   engine: EngineKind;
   showGrid: boolean;
+  colorizeStates: boolean;
   colors: {
     background: string;
     alive: string;
@@ -36,6 +37,7 @@ export const DEFAULT_CONFIG: GameConfig = {
   survivalRules: [...RULE_PRESETS.conway.survival],
   engine: 'wasm',
   showGrid: true,
+  colorizeStates: false,
   colors: {
     background: '#050608',
     alive: '#c8ccd2',

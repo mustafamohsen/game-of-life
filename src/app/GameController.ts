@@ -114,6 +114,10 @@ export class GameController {
       this.config.showGrid = (e.target as HTMLInputElement).checked;
       this.session.redraw();
     };
+    this.root.querySelector<HTMLInputElement>('#state-colors')!.onchange = (e) => {
+      this.config.colorizeStates = (e.target as HTMLInputElement).checked;
+      this.session.redraw();
+    };
 
     let dragging = false;
     canvas.addEventListener('mousedown', (e) => { dragging = true; this.toggleFromMouse(e); });
@@ -288,6 +292,7 @@ export class GameController {
           <div class="toggle-row">
             <label class="switch"><input id="wrap" type="checkbox" checked><span></span><b>Wrap edges</b></label>
             <label class="switch"><input id="grid" type="checkbox" checked><span></span><b>Show grid</b></label>
+            <label class="switch"><input id="state-colors" type="checkbox"><span></span><b>State colors</b></label>
           </div>
         </section>
 

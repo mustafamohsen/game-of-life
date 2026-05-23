@@ -2,6 +2,7 @@ import type { GameConfig } from '../app/Config';
 
 export class CanvasRenderer {
   private ctx: CanvasRenderingContext2D;
+  private previousCells: Uint8Array | undefined;
 
   constructor(public readonly canvas: HTMLCanvasElement, private config: GameConfig) {
     const ctx = canvas.getContext('2d');
@@ -15,6 +16,7 @@ export class CanvasRenderer {
     this.canvas.width = config.width * config.cellSize;
     this.canvas.height = config.height * config.cellSize;
     this.canvas.style.setProperty('--canvas-aspect', String(config.width / config.height));
+    this.previousCells = undefined;
   }
 
   cellFromEvent(event: MouseEvent): [number, number] {
@@ -31,27 +33,62 @@ export class CanvasRenderer {
     const { width, height, cellSize, colors, showGrid } = this.config;
     this.drawFieldBackground(colors.background);
 
-    const inset = cellSize >= 8 ? 1 : 0;
-    const cellPath = new Path2D();
-    for (let y = 0; y < height; y++) {
-      for (let x = 0; x < width; x++) {
-        if (!cells[y * width + x]) continue;
-        cellPath.rect(x * cellSize + inset, y * cellSize + inset, cellSize - inset * 2, cellSize - inset * 2);
-      }
-    }
-
-    this.ctx.save();
-    this.ctx.shadowColor = 'rgba(77, 157, 255, 0.26)';
-    this.ctx.shadowBlur = Math.max(4, cellSize * 0.9);
-    this.ctx.fillStyle = 'rgba(77, 157, 255, 0.34)';
-    this.ctx.fill(cellPath);
-    this.ctx.restore();
-
-    this.ctx.fillStyle = colors.alive;
-    this.ctx.fill(cellPath);
+    if (this.config.colorizeStates) this.drawStateCells(cells, width, height, cellSize, colors.alive);
+    else this.drawMonoCells(cells, width, height, cellSize, colors.alive);
 
     if (showGrid && cellSize >= 5) this.drawGrid(width, height, cellSize, colors.grid);
     this.drawFrameShadow();
+    this.previousCells = new Uint8Array(cells);
+  }
+
+  private drawMonoCells(cells: Uint8Array, width: number, height: number, cellSize: number, aliveColor: string) {
+    const cellPath = this.cellsPath(cells, width, height, cellSize, (alive) => alive);
+    this.drawGlow(cellPath, 'rgba(77, 157, 255, 0.26)', 'rgba(77, 157, 255, 0.34)', cellSize);
+    this.ctx.fillStyle = aliveColor;
+    this.ctx.fill(cellPath);
+  }
+
+  private drawStateCells(cells: Uint8Array, width: number, height: number, cellSize: number, aliveColor: string) {
+    const previous = this.previousCells;
+    const born = this.cellsPath(cells, width, height, cellSize, (alive, wasAlive) => alive && !wasAlive);
+    const surviving = this.cellsPath(cells, width, height, cellSize, (alive, wasAlive) => alive && wasAlive);
+    const dying = previous ? this.cellsPath(cells, width, height, cellSize, (alive, wasAlive) => !alive && wasAlive) : new Path2D();
+
+    this.drawGlow(born, 'rgba(77, 157, 255, 0.34)', 'rgba(77, 157, 255, 0.38)', cellSize);
+    this.ctx.fillStyle = '#4d9dff';
+    this.ctx.fill(born);
+    this.ctx.fillStyle = aliveColor;
+    this.ctx.fill(surviving);
+    this.ctx.fillStyle = 'rgba(150, 170, 195, 0.18)';
+    this.ctx.fill(dying);
+  }
+
+  private cellsPath(
+    cells: Uint8Array,
+    width: number,
+    height: number,
+    cellSize: number,
+    include: (alive: boolean, wasAlive: boolean) => boolean,
+  ) {
+    const inset = cellSize >= 8 ? 1 : 0;
+    const path = new Path2D();
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        const index = y * width + x;
+        if (!include(cells[index] === 1, this.previousCells?.[index] === 1)) continue;
+        path.rect(x * cellSize + inset, y * cellSize + inset, cellSize - inset * 2, cellSize - inset * 2);
+      }
+    }
+    return path;
+  }
+
+  private drawGlow(path: Path2D, shadowColor: string, fillColor: string, cellSize: number) {
+    this.ctx.save();
+    this.ctx.shadowColor = shadowColor;
+    this.ctx.shadowBlur = Math.max(4, cellSize * 0.9);
+    this.ctx.fillStyle = fillColor;
+    this.ctx.fill(path);
+    this.ctx.restore();
   }
 
   private drawFieldBackground(background: string) {
