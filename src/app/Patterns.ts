@@ -24,6 +24,19 @@ export const LIFE_PATTERNS = [
     'O...O',
     'OOOO.',
   ]),
+  fromRows('blinker', 'Blinker', 'Small period-2 oscillator.', [
+    'OOO',
+  ]),
+  fromRows('toad', 'Toad', 'Period-2 oscillator.', [
+    '.OOO',
+    'OOO.',
+  ]),
+  fromRows('beacon', 'Beacon', 'Period-2 oscillator made of two blocks.', [
+    'OO..',
+    'OO..',
+    '..OO',
+    '..OO',
+  ]),
   fromRows('pulsar', 'Pulsar', 'Classic period-3 oscillator.', [
     '..OOO...OOO..',
     '.............',
@@ -51,6 +64,20 @@ export const LIFE_PATTERNS = [
     '..O..',
     '..O..',
   ]),
+  fromRows('block', 'Block', 'Stable 2×2 still life.', [
+    'OO',
+    'OO',
+  ]),
+  fromRows('beehive', 'Beehive', 'Common six-cell still life.', [
+    '.OO.',
+    'O..O',
+    '.OO.',
+  ]),
+  fromRows('boat', 'Boat', 'Compact five-cell still life.', [
+    'OO.',
+    'O.O',
+    '.O.',
+  ]),
   fromRows('diehard', 'Diehard', 'Methuselah pattern that eventually disappears.', [
     '......O.',
     'OO......',
@@ -60,6 +87,17 @@ export const LIFE_PATTERNS = [
     '.O.....',
     '...O...',
     'OO..OOO',
+  ]),
+  fromRows('rPentomino', 'R-pentomino', 'Famous methuselah with long evolution.', [
+    '.OO',
+    'OO.',
+    '.O.',
+  ]),
+  fromRows('queenBee', 'Queen bee shuttle', 'Oscillator commonly used in larger guns.', [
+    '...O...',
+    '..O.O..',
+    '.O...O.',
+    '..OOO..',
   ]),
   fromRows('gosper', 'Gosper glider gun', 'First known pattern with unbounded growth.', [
     '........................O...........',
@@ -71,6 +109,27 @@ export const LIFE_PATTERNS = [
     '..........O.....O.......O...........',
     '...........O...O....................',
     '............OO......................',
+  ]),
+  fromRows('simkin', 'Simkin glider gun', 'Compact glider gun with two block pairs.', [
+    'OO.....OO...........................',
+    'OO.....OO...........................',
+    '....................................',
+    '....OO..............................',
+    '....OO..............................',
+    '....................................',
+    '....................................',
+    '....................................',
+    '....................................',
+    '....................................',
+    '....................................',
+    '....................................',
+    '........................OO.OO.......',
+    '.......................O.....O......',
+    '.......................O......O..OO.',
+    '.......................OOO...O...OO.',
+    '...........................O.O......',
+    '..........................O..O......',
+    '..........................OO........',
   ]),
 ] as const;
 
