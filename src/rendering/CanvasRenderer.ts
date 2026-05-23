@@ -50,15 +50,11 @@ export class CanvasRenderer {
     this.ctx.fill(cellPath);
 
     if (showGrid && cellSize >= 5) this.drawGrid(width, height, cellSize, colors.grid);
-    this.drawVignette();
+    this.drawFrameShadow();
   }
 
   private drawFieldBackground(background: string) {
-    const gradient = this.ctx.createLinearGradient(0, 0, this.canvas.width, this.canvas.height);
-    gradient.addColorStop(0, background);
-    gradient.addColorStop(0.55, '#080d14');
-    gradient.addColorStop(1, '#050608');
-    this.ctx.fillStyle = gradient;
+    this.ctx.fillStyle = background;
     this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
   }
 
@@ -91,18 +87,12 @@ export class CanvasRenderer {
     this.ctx.restore();
   }
 
-  private drawVignette() {
-    const gradient = this.ctx.createRadialGradient(
-      this.canvas.width / 2,
-      this.canvas.height / 2,
-      Math.min(this.canvas.width, this.canvas.height) * 0.2,
-      this.canvas.width / 2,
-      this.canvas.height / 2,
-      Math.max(this.canvas.width, this.canvas.height) * 0.72,
-    );
-    gradient.addColorStop(0, 'rgba(0, 0, 0, 0)');
-    gradient.addColorStop(1, 'rgba(0, 0, 0, 0.28)');
-    this.ctx.fillStyle = gradient;
-    this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+  private drawFrameShadow() {
+    const edge = Math.max(12, Math.min(this.canvas.width, this.canvas.height) * 0.035);
+    this.ctx.fillStyle = 'rgba(0, 0, 0, 0.18)';
+    this.ctx.fillRect(0, 0, this.canvas.width, edge);
+    this.ctx.fillRect(0, this.canvas.height - edge, this.canvas.width, edge);
+    this.ctx.fillRect(0, 0, edge, this.canvas.height);
+    this.ctx.fillRect(this.canvas.width - edge, 0, edge, this.canvas.height);
   }
 }
