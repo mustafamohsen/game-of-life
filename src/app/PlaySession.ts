@@ -1,5 +1,6 @@
 import type { EngineKind, GameConfig } from './Config';
 import type { LifeEngine } from '../engines/LifeEngine';
+import { StatsTimeline, type StatsSample } from './StatsTimeline';
 
 export type EngineFactory = (kind: EngineKind, config: GameConfig) => Promise<LifeEngine>;
 
@@ -13,6 +14,7 @@ type SessionSnapshot = {
   births: number;
   deaths: number;
   delta: number;
+  statsHistory: readonly StatsSample[];
 };
 
 export class PlaySession {
@@ -21,6 +23,7 @@ export class PlaySession {
   private generation = 0;
   private previousCells: Uint8Array | undefined;
   private lastStats = { population: 0, births: 0, deaths: 0, delta: 0 };
+  private readonly statsTimeline = new StatsTimeline();
 
   constructor(
     private readonly config: GameConfig,
@@ -41,7 +44,7 @@ export class PlaySession {
     this.config.engine = this.engine.kind;
     this.generation = 0;
     this.previousCells = undefined;
-    this.emit(true);
+    this.emit(true, 'reset');
     return this.engine.kind;
   }
 
@@ -72,7 +75,7 @@ export class PlaySession {
   step() {
     this.engine.step();
     this.generation++;
-    this.emit(true);
+    this.emit(true, 'append');
   }
 
   clear() {
@@ -80,34 +83,38 @@ export class PlaySession {
     this.engine.clear();
     this.generation = 0;
     this.previousCells = undefined;
-    this.emit(true);
+    this.emit(true, 'reset');
   }
 
   randomize(density = this.config.randomDensity) {
     this.engine.randomize(density);
     this.generation = 0;
     this.previousCells = undefined;
-    this.emit(true);
+    this.emit(true, 'reset');
   }
 
   setCell(x: number, y: number, alive: boolean) {
     this.engine.setCell(x, y, alive);
-    this.emit(true);
+    this.emit(true, 'append');
   }
 
   toggleCell(x: number, y: number) {
     this.engine.toggleCell(x, y);
-    this.emit(true);
+    this.emit(true, 'append');
   }
 
   redraw() {
-    this.emit(false);
+    this.emit(false, 'none');
   }
 
-  private emit(trackTransition: boolean) {
+  private emit(trackTransition: boolean, timelineMode: 'append' | 'reset' | 'none') {
     const cells = this.engine.getCells();
     const stats = trackTransition ? this.calculateStats(cells) : this.lastStats;
+    const sample = { generation: this.generation, ...stats };
     this.lastStats = stats;
+    if (timelineMode === 'reset') this.statsTimeline.reset(sample);
+    else if (timelineMode === 'append') this.statsTimeline.append(sample);
+
     this.onSnapshot({
       engine: this.config.engine,
       generation: this.generation,
@@ -115,6 +122,7 @@ export class PlaySession {
       height: this.config.height,
       cells,
       ...stats,
+      statsHistory: this.statsTimeline.snapshot(),
     });
     if (trackTransition) this.previousCells = new Uint8Array(cells);
   }

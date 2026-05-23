@@ -74,4 +74,17 @@ describe('PlaySession', () => {
 
     expect(stats.at(-1)).toMatchObject({ population: 1, births: 0, deaths: 1, delta: -1 });
   });
+
+  it('collects a resettable stats history for graphing', async () => {
+    const engine = new FakeEngine();
+    const historyLengths: number[] = [];
+    const session = new PlaySession(config(), async () => engine, (snapshot) => historyLengths.push(snapshot.statsHistory.length), (() => 1) as typeof window.setInterval, (() => {}) as typeof window.clearInterval);
+    await session.switchEngine('js');
+
+    session.setCell(0, 0, true);
+    session.setCell(1, 1, true);
+    session.randomize();
+
+    expect(historyLengths).toEqual([1, 2, 3, 1]);
+  });
 });

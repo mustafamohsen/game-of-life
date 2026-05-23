@@ -5,6 +5,7 @@ import { initWasm, WasmLifeEngine } from '../engines/WasmLifeEngine';
 import { CanvasRenderer } from '../rendering/CanvasRenderer';
 import { LIFE_PATTERNS, type LifePattern } from './Patterns';
 import { PlaySession } from './PlaySession';
+import type { StatsSample } from './StatsTimeline';
 
 export class GameController {
   private config: GameConfig = structuredClone(DEFAULT_CONFIG);
@@ -14,6 +15,7 @@ export class GameController {
   private playButton: HTMLButtonElement;
   private shell: HTMLElement;
   private latestCells: Uint8Array | undefined;
+  private latestStatsHistory: readonly StatsSample[] = [];
   private pendingPattern: LifePattern | undefined;
 
   constructor(private root: HTMLElement) {
@@ -28,6 +30,8 @@ export class GameController {
       (kind, config) => this.createEngine(kind, config),
       (snapshot) => {
         this.latestCells = snapshot.cells;
+        this.latestStatsHistory = snapshot.statsHistory;
+        this.root.dispatchEvent(new CustomEvent('life:stats', { detail: { latest: snapshot, history: this.latestStatsHistory } }));
         this.renderer.draw(snapshot.cells);
         this.status.innerHTML = `<span>${snapshot.engine.toUpperCase()} · Gen ${snapshot.generation} · ${snapshot.width}×${snapshot.height}</span><span>Pop ${snapshot.population}</span><span>Births ${snapshot.births}</span><span>Deaths ${snapshot.deaths}</span><span>Δ ${snapshot.delta >= 0 ? '+' : ''}${snapshot.delta}</span>`;
       },
