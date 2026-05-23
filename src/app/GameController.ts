@@ -56,8 +56,8 @@ export class GameController {
   private bindControls(canvas: HTMLCanvasElement) {
     this.playButton.onclick = () => this.togglePlayback();
     this.root.querySelector<HTMLButtonElement>('#step')!.onclick = () => this.session.step();
-    this.root.querySelector<HTMLButtonElement>('#clear')!.onclick = () => { this.session.clear(); this.syncPlayButton(); };
-    this.root.querySelector<HTMLButtonElement>('#random')!.onclick = () => this.session.randomize();
+    this.root.querySelector<HTMLButtonElement>('#clear')!.onclick = () => this.clearWorld();
+    this.root.querySelector<HTMLButtonElement>('#random')!.onclick = () => this.randomizeWorld();
     this.root.querySelector<HTMLButtonElement>('#sidebar-toggle')!.onclick = () => this.toggleSidebar();
 
     const patternDialog = this.root.querySelector<HTMLDialogElement>('#pattern-library')!;
@@ -118,11 +118,11 @@ export class GameController {
     };
     this.root.querySelector<HTMLInputElement>('#grid')!.onchange = (e) => {
       this.config.showGrid = (e.target as HTMLInputElement).checked;
-      this.session.redraw();
+      this.redrawLatest();
     };
     this.root.querySelector<HTMLInputElement>('#state-colors')!.onchange = (e) => {
       this.config.colorizeStates = (e.target as HTMLInputElement).checked;
-      this.session.redraw();
+      this.redrawLatest();
     };
 
     let dragging = false;
@@ -157,6 +157,19 @@ export class GameController {
     this.syncPlayButton();
   }
 
+  private clearWorld() {
+    this.session.clear();
+    this.renderer.resetState(this.latestCells);
+    this.redrawLatest();
+    this.syncPlayButton();
+  }
+
+  private randomizeWorld() {
+    this.session.randomize();
+    this.renderer.resetState(this.latestCells);
+    this.redrawLatest();
+  }
+
   private handleKeyboard(event: KeyboardEvent) {
     const target = event.target as HTMLElement | null;
     if (target?.matches('input, textarea, select, button')) return;
@@ -167,11 +180,10 @@ export class GameController {
       this.togglePlayback();
     } else if (key === 'x' || key === 'backspace') {
       event.preventDefault();
-      this.session.clear();
-      this.syncPlayButton();
+      this.clearWorld();
     } else if (key === 'r') {
       event.preventDefault();
-      this.session.randomize();
+      this.randomizeWorld();
     } else if (key === '[' || key === '-') {
       event.preventDefault();
       this.adjustSpeed(1, event.shiftKey);

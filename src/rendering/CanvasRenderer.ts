@@ -31,6 +31,11 @@ export class CanvasRenderer {
     ];
   }
 
+  resetState(cells: Uint8Array | undefined) {
+    this.previousCells = undefined;
+    this.lastCells = cells ? new Uint8Array(cells) : undefined;
+  }
+
   drawPatternPreview(cells: readonly [number, number][], centerX: number, centerY: number) {
     const { width, height, cellSize } = this.config;
     const maxX = Math.max(...cells.map(([x]) => x));
@@ -80,8 +85,8 @@ export class CanvasRenderer {
 
   private drawStateCells(cells: Uint8Array, width: number, height: number, cellSize: number, aliveColor: string) {
     const previous = this.previousCells;
-    const born = this.cellsPath(cells, width, height, cellSize, (alive, wasAlive) => alive && !wasAlive);
-    const surviving = this.cellsPath(cells, width, height, cellSize, (alive, wasAlive) => alive && wasAlive);
+    const born = previous ? this.cellsPath(cells, width, height, cellSize, (alive, wasAlive) => alive && !wasAlive) : new Path2D();
+    const surviving = this.cellsPath(cells, width, height, cellSize, (alive, wasAlive) => alive && (!previous || wasAlive));
     const dying = previous ? this.cellsPath(cells, width, height, cellSize, (alive, wasAlive) => !alive && wasAlive) : new Path2D();
 
     this.drawGlow(born, 'rgba(77, 157, 255, 0.34)', 'rgba(77, 157, 255, 0.38)', cellSize);
