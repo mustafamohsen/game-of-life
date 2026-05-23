@@ -160,6 +160,9 @@ export class GameController {
     } else if (key === ']' || key === '=' || key === '+') {
       event.preventDefault();
       this.adjustSpeed(-1, event.shiftKey);
+    } else if (key === 'c') {
+      event.preventDefault();
+      this.toggleSidebar();
     }
   }
 
@@ -304,7 +307,7 @@ export class GameController {
 
       <section class="stage" aria-label="Simulation viewport">
         <div class="stage-chrome">
-          <button id="sidebar-toggle" class="sidebar-toggle" type="button" aria-expanded="true" aria-controls="control-panel" aria-label="Hide controls">‹</button>
+          <button id="sidebar-toggle" class="sidebar-toggle" type="button" aria-expanded="true" aria-controls="control-panel" aria-label="Hide controls" data-shortcut="C">‹</button>
           <span>field monitor</span>
         </div>
         <div class="canvas-frame">
