@@ -15,7 +15,6 @@ type SessionSnapshot = {
   deaths: number;
   delta: number;
   density: number;
-  churn: number;
   period: number | undefined;
   event: StatsEvent | undefined;
   statsHistory: readonly StatsSample[];
@@ -26,7 +25,7 @@ export class PlaySession {
   private timer: number | undefined;
   private generation = 0;
   private previousCells: Uint8Array | undefined;
-  private lastStats = { population: 0, births: 0, deaths: 0, delta: 0, density: 0, churn: 0, period: undefined as number | undefined };
+  private lastStats = { population: 0, births: 0, deaths: 0, delta: 0, density: 0, period: undefined as number | undefined };
   private readonly statsTimeline = new StatsTimeline();
   private readonly seenStates = new Map<string, number>();
 
@@ -150,9 +149,8 @@ export class PlaySession {
       else if (!alive && wasAlive) deaths++;
     }
     const density = population / cells.length;
-    const churn = population === 0 ? 0 : (births + deaths) / population;
     const period = this.detectPeriod(cells);
-    return { population, births, deaths, delta: births - deaths, density, churn, period };
+    return { population, births, deaths, delta: births - deaths, density, period };
   }
 
   private detectPeriod(cells: Uint8Array) {

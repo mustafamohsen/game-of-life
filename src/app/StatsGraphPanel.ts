@@ -11,10 +11,8 @@ export class StatsGraphPanel {
   private deathsValue: HTMLElement;
   private deltaValue: HTMLElement;
   private densityValue: HTMLElement;
-  private churnValue: HTMLElement;
   private periodValue: HTMLElement;
   private densityPath: SVGPathElement;
-  private churnPath: SVGPathElement;
   private eventLayer: SVGGElement;
   private toggle: HTMLButtonElement;
   private samplesValue: HTMLElement;
@@ -29,10 +27,8 @@ export class StatsGraphPanel {
     this.deathsValue = root.querySelector<HTMLElement>('#stats-deaths')!;
     this.deltaValue = root.querySelector<HTMLElement>('#stats-delta')!;
     this.densityValue = root.querySelector<HTMLElement>('#stats-density')!;
-    this.churnValue = root.querySelector<HTMLElement>('#stats-churn')!;
     this.periodValue = root.querySelector<HTMLElement>('#stats-period')!;
     this.densityPath = root.querySelector<SVGPathElement>('#density-path')!;
-    this.churnPath = root.querySelector<SVGPathElement>('#churn-path')!;
     this.eventLayer = root.querySelector<SVGGElement>('#event-markers')!;
     this.toggle = root.querySelector<HTMLButtonElement>('#stats-toggle')!;
     this.samplesValue = root.querySelector<HTMLElement>('#stats-samples')!;
@@ -57,7 +53,6 @@ export class StatsGraphPanel {
     this.deathsValue.textContent = String(latest.deaths);
     this.deltaValue.textContent = `${latest.delta >= 0 ? '+' : ''}${latest.delta}`;
     this.densityValue.textContent = `${Math.round(latest.density * 100)}%`;
-    this.churnValue.textContent = latest.churn.toFixed(2);
     this.periodValue.textContent = latest.period ? String(latest.period) : '—';
     this.samplesValue.textContent = `${history.length} sample${history.length === 1 ? '' : 's'}`;
     this.populationPath.setAttribute('d', this.linePath(history.map((sample) => sample.population), 320, 96));
@@ -65,7 +60,6 @@ export class StatsGraphPanel {
     this.birthsPath.setAttribute('d', this.linePath(history.map((sample) => sample.births), 320, 72, maxFlow));
     this.deathsPath.setAttribute('d', this.linePath(history.map((sample) => sample.deaths), 320, 72, maxFlow));
     this.densityPath.setAttribute('d', this.linePath(history.map((sample) => sample.density), 320, 56, 1));
-    this.churnPath.setAttribute('d', this.linePath(history.map((sample) => sample.churn), 320, 56));
     this.eventLayer.innerHTML = this.eventMarkers(history, 320, 96);
   }
 

@@ -7,7 +7,6 @@ export type StatsSample = {
   deaths: number;
   delta: number;
   density: number;
-  churn: number;
   period: number | undefined;
   event: StatsEvent | undefined;
 };

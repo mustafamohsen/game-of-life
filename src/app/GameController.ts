@@ -435,7 +435,6 @@ export class GameController {
             <span>Deaths <b id="stats-deaths">0</b></span>
             <span>Δ <b id="stats-delta">+0</b></span>
             <span>Density <b id="stats-density">0%</b></span>
-            <span>Churn <b id="stats-churn">0.00</b></span>
             <span>Period <b id="stats-period">—</b></span>
           </div>
           <section class="chart-card">
@@ -447,8 +446,8 @@ export class GameController {
             <svg viewBox="0 0 320 72" preserveAspectRatio="none" aria-hidden="true"><path id="births-path" class="births"></path><path id="deaths-path" class="deaths"></path></svg>
           </section>
           <section class="chart-card compact mini-charts">
-            <span>Density / churn</span>
-            <svg viewBox="0 0 320 56" preserveAspectRatio="none" aria-hidden="true"><path id="density-path" class="density"></path><path id="churn-path" class="churn"></path></svg>
+            <span>Density</span>
+            <svg viewBox="0 0 320 56" preserveAspectRatio="none" aria-hidden="true"><path id="density-path" class="density"></path></svg>
           </section>
         </aside>
       </section>
