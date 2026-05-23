@@ -119,6 +119,7 @@ export class GameController {
     canvas.addEventListener('mousedown', (e) => { dragging = true; this.toggleFromMouse(e); });
     canvas.addEventListener('mousemove', (e) => { if (dragging) this.paintFromMouse(e); });
     window.addEventListener('mouseup', () => { dragging = false; });
+    window.addEventListener('keydown', (e) => this.handleKeyboard(e));
   }
 
   private async rebuildAndRandomize() {
@@ -136,6 +137,42 @@ export class GameController {
     if (this.session.isPlaying()) this.session.stop();
     else this.session.play();
     this.syncPlayButton();
+  }
+
+  private handleKeyboard(event: KeyboardEvent) {
+    const target = event.target as HTMLElement | null;
+    if (target?.matches('input, textarea, select, button')) return;
+
+    const key = event.key.toLowerCase();
+    if (key === ' ' || key === 'k') {
+      event.preventDefault();
+      this.togglePlayback();
+    } else if (key === 'x' || key === 'backspace') {
+      event.preventDefault();
+      this.session.clear();
+      this.syncPlayButton();
+    } else if (key === 'r') {
+      event.preventDefault();
+      this.session.randomize();
+    } else if (key === '[' || key === '-') {
+      event.preventDefault();
+      this.adjustSpeed(1, event.shiftKey);
+    } else if (key === ']' || key === '=' || key === '+') {
+      event.preventDefault();
+      this.adjustSpeed(-1, event.shiftKey);
+    }
+  }
+
+  private adjustSpeed(direction: 1 | -1, largeStep = false) {
+    const input = this.root.querySelector<HTMLInputElement>('#speed')!;
+    const min = Number(input.min);
+    const max = Number(input.max);
+    const step = largeStep ? 50 : 10;
+    const next = Math.min(max, Math.max(min, this.config.tickRateMs + direction * step));
+    this.config.tickRateMs = next;
+    input.value = String(next);
+    this.root.querySelector<HTMLElement>('#speed-value')!.textContent = String(next);
+    this.session.restartTimer();
   }
 
   private syncPlayButton() {
@@ -218,10 +255,10 @@ export class GameController {
         <section class="control-card command-card">
           <div class="card-label">Transport</div>
           <div class="transport-grid">
-            <button id="play" class="command primary" type="button" data-state="paused"><span>Play</span></button>
+            <button id="play" class="command primary" type="button" data-state="paused" title="Space or K"><span>Play</span><kbd>Space</kbd></button>
             <button id="step" class="command" type="button"><span>Step</span></button>
-            <button id="random" class="command" type="button"><span>Seed</span></button>
-            <button id="clear" class="command danger" type="button"><span>Wipe</span></button>
+            <button id="random" class="command" type="button" title="R"><span>Seed</span><kbd>R</kbd></button>
+            <button id="clear" class="command danger" type="button" title="X or Backspace"><span>Wipe</span><kbd>X</kbd></button>
           </div>
         </section>
 
@@ -243,7 +280,7 @@ export class GameController {
 
         <section class="control-card slider-bank">
           <div class="card-label">Evolution</div>
-          <label class="control-slider hot"><span>Tempo <output id="speed-value">${this.config.tickRateMs}</output> ms</span><input id="speed" type="range" min="10" max="500" value="${this.config.tickRateMs}"></label>
+          <label class="control-slider hot"><span>Tempo <output id="speed-value">${this.config.tickRateMs}</output> ms <kbd>[/]</kbd></span><input id="speed" type="range" min="10" max="500" value="${this.config.tickRateMs}"></label>
           <label class="control-slider hot"><span>Seed density <output id="density-value">${Math.round(this.config.randomDensity*100)}%</output></span><input id="density" type="range" min="1" max="80" value="${Math.round(this.config.randomDensity*100)}"></label>
           <div class="toggle-row">
             <label class="switch"><input id="wrap" type="checkbox" checked><span></span><b>Wrap edges</b></label>
