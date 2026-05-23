@@ -3,6 +3,7 @@ import type { LifeEngine } from '../engines/LifeEngine';
 import { JsLifeEngine } from '../engines/JsLifeEngine';
 import { initWasm, WasmLifeEngine } from '../engines/WasmLifeEngine';
 import { CanvasRenderer } from '../rendering/CanvasRenderer';
+import { LIFE_PATTERNS, type LifePattern } from './Patterns';
 
 export class GameController {
   private config: GameConfig = structuredClone(DEFAULT_CONFIG);
@@ -51,6 +52,11 @@ export class GameController {
     this.root.querySelector<HTMLButtonElement>('#clear')!.onclick = () => { this.stop(); this.engine.clear(); this.generation = 0; this.draw(); };
     this.root.querySelector<HTMLButtonElement>('#random')!.onclick = () => { this.engine.randomize(this.config.randomDensity); this.generation = 0; this.draw(); };
 
+    for (const button of this.root.querySelectorAll<HTMLButtonElement>('[data-pattern]')) {
+      button.onclick = () => this.addPattern(button.dataset.pattern!);
+    }
+    this.root.querySelector<HTMLButtonElement>('#showcase')!.onclick = () => this.loadShowcase();
+
     this.root.querySelector<HTMLSelectElement>('#engine')!.onchange = async (e) => { await this.createEngine((e.target as HTMLSelectElement).value as EngineKind); this.engine.randomize(this.config.randomDensity); this.draw(); };
     this.root.querySelector<HTMLSelectElement>('#rules')!.onchange = async (e) => {
       const preset = RULE_PRESETS[(e.target as HTMLSelectElement).value as keyof typeof RULE_PRESETS];
@@ -80,10 +86,47 @@ export class GameController {
 
   private toggleFromMouse(e: MouseEvent) { const [x, y] = this.renderer.cellFromEvent(e); this.engine.toggleCell(x, y); this.draw(); }
   private paintFromMouse(e: MouseEvent) { const [x, y] = this.renderer.cellFromEvent(e); this.engine.setCell(x, y, true); this.draw(); }
+
+  private addPattern(patternId: string) {
+    const pattern = LIFE_PATTERNS.find((candidate) => candidate.id === patternId);
+    if (!pattern) return;
+    this.placePattern(pattern, Math.floor(this.config.width / 2), Math.floor(this.config.height / 2));
+    this.draw();
+  }
+
+  private loadShowcase() {
+    this.stop();
+    this.engine.clear();
+    const placements: Array<[LifePattern, number, number]> = [
+      [LIFE_PATTERNS[0], Math.floor(this.config.width * 0.12), Math.floor(this.config.height * 0.15)],
+      [LIFE_PATTERNS[1], Math.floor(this.config.width * 0.28), Math.floor(this.config.height * 0.2)],
+      [LIFE_PATTERNS[2], Math.floor(this.config.width * 0.55), Math.floor(this.config.height * 0.2)],
+      [LIFE_PATTERNS[4], Math.floor(this.config.width * 0.18), Math.floor(this.config.height * 0.65)],
+      [LIFE_PATTERNS[5], Math.floor(this.config.width * 0.4), Math.floor(this.config.height * 0.7)],
+      [LIFE_PATTERNS[6], Math.floor(this.config.width * 0.65), Math.floor(this.config.height * 0.65)],
+    ];
+    for (const [pattern, x, y] of placements) this.placePattern(pattern, x, y);
+    this.generation = 0;
+    this.draw();
+  }
+
+  private placePattern(pattern: LifePattern, centerX: number, centerY: number) {
+    const maxX = Math.max(...pattern.cells.map(([x]) => x));
+    const maxY = Math.max(...pattern.cells.map(([, y]) => y));
+    const originX = centerX - Math.floor((maxX + 1) / 2);
+    const originY = centerY - Math.floor((maxY + 1) / 2);
+    for (const [x, y] of pattern.cells) {
+      const targetX = originX + x;
+      const targetY = originY + y;
+      if (targetX >= 0 && targetY >= 0 && targetX < this.config.width && targetY < this.config.height) {
+        this.engine.setCell(targetX, targetY, true);
+      }
+    }
+  }
   private play() { this.timer = window.setInterval(() => this.tick(), this.config.tickRateMs); this.root.querySelector<HTMLButtonElement>('#play')!.textContent = 'Pause'; }
   private stop() { if (this.timer) window.clearInterval(this.timer); this.timer = undefined; const b = this.root.querySelector<HTMLButtonElement>('#play'); if (b) b.textContent = 'Play'; }
   private tick() { this.engine.step(); this.generation++; this.draw(); }
   private draw() { this.renderer.draw(this.engine.getCells()); this.status.textContent = `${this.config.engine.toUpperCase()} · Generation ${this.generation} · ${this.config.width}×${this.config.height}`; }
 
-  private template() { return `<section class="shell"><header><h1>Game of Life</h1><p>TypeScript UI with a Rust WASM simulation engine.</p></header><div class="panel"><div class="buttons"><button id="play">Play</button><button id="step">Step</button><button id="random">Randomize</button><button id="clear">Clear</button></div><label>Engine <select id="engine"><option value="wasm">Rust WASM</option><option value="js">TypeScript</option></select></label><label>Rules <select id="rules">${Object.entries(RULE_PRESETS).map(([k,v]) => `<option value="${k}">${v.label}</option>`).join('')}</select></label><label>Width <span id="width-value">${this.config.width}</span><input id="width" type="range" min="20" max="220" value="${this.config.width}"></label><label>Height <span id="height-value">${this.config.height}</span><input id="height" type="range" min="20" max="160" value="${this.config.height}"></label><label>Cell size <span id="cellSize-value">${this.config.cellSize}</span><input id="cellSize" type="range" min="3" max="20" value="${this.config.cellSize}"></label><label>Speed ms <span id="speed-value">${this.config.tickRateMs}</span><input id="speed" type="range" min="10" max="500" value="${this.config.tickRateMs}"></label><label>Density <span id="density-value">${Math.round(this.config.randomDensity*100)}%</span><input id="density" type="range" min="1" max="80" value="${Math.round(this.config.randomDensity*100)}"></label><label class="check"><input id="wrap" type="checkbox" checked> Wrap edges</label><label class="check"><input id="grid" type="checkbox" checked> Show grid</label><strong id="status"></strong></div><canvas id="life-canvas" aria-label="Game of Life grid"></canvas></section>`; }
+  private template() { return `<section class="shell"><header><h1>Game of Life</h1><p>TypeScript UI with a Rust WASM simulation engine.</p></header><div class="panel"><div class="buttons"><button id="play">Play</button><button id="step">Step</button><button id="random">Randomize</button><button id="clear">Clear</button></div><section class="patterns"><h2>Patterns</h2><div class="pattern-buttons">${LIFE_PATTERNS.map((pattern) => `<button type="button" data-pattern="${pattern.id}" title="${pattern.description}">${pattern.name}</button>`).join('')}<button id="showcase" type="button">Load showcase</button></div></section><label>Engine <select id="engine"><option value="wasm">Rust WASM</option><option value="js">TypeScript</option></select></label><label>Rules <select id="rules">${Object.entries(RULE_PRESETS).map(([k,v]) => `<option value="${k}">${v.label}</option>`).join('')}</select></label><label>Width <span id="width-value">${this.config.width}</span><input id="width" type="range" min="20" max="220" value="${this.config.width}"></label><label>Height <span id="height-value">${this.config.height}</span><input id="height" type="range" min="20" max="160" value="${this.config.height}"></label><label>Cell size <span id="cellSize-value">${this.config.cellSize}</span><input id="cellSize" type="range" min="3" max="20" value="${this.config.cellSize}"></label><label>Speed ms <span id="speed-value">${this.config.tickRateMs}</span><input id="speed" type="range" min="10" max="500" value="${this.config.tickRateMs}"></label><label>Density <span id="density-value">${Math.round(this.config.randomDensity*100)}%</span><input id="density" type="range" min="1" max="80" value="${Math.round(this.config.randomDensity*100)}"></label><label class="check"><input id="wrap" type="checkbox" checked> Wrap edges</label><label class="check"><input id="grid" type="checkbox" checked> Show grid</label><strong id="status"></strong></div><canvas id="life-canvas" aria-label="Game of Life grid"></canvas></section>`; }
 }
