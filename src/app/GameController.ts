@@ -228,8 +228,8 @@ export class GameController {
         <section class="control-card patterns">
           <div class="card-label">Pattern deck</div>
           <button id="open-pattern-library" class="pattern-library-trigger" type="button">
-            <span>Browse patterns</span>
-            <small>${LIFE_PATTERNS.length} patterns · searchable library</small>
+            <span>Patterns</span>
+            <small>${LIFE_PATTERNS.length} available</small>
           </button>
           <button id="showcase" class="pattern-card showcase" type="button"><span>Load showcase</span><small>compose a living gallery</small></button>
         </section>
