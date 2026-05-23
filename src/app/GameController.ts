@@ -29,7 +29,7 @@ export class GameController {
       (snapshot) => {
         this.latestCells = snapshot.cells;
         this.renderer.draw(snapshot.cells);
-        this.status.textContent = `${snapshot.engine.toUpperCase()} · Generation ${snapshot.generation} · ${snapshot.width}×${snapshot.height}`;
+        this.status.innerHTML = `<span>${snapshot.engine.toUpperCase()} · Gen ${snapshot.generation} · ${snapshot.width}×${snapshot.height}</span><span>Pop ${snapshot.population}</span><span>Births ${snapshot.births}</span><span>Deaths ${snapshot.deaths}</span><span>Δ ${snapshot.delta >= 0 ? '+' : ''}${snapshot.delta}</span>`;
       },
     );
     this.bindControls(canvas);

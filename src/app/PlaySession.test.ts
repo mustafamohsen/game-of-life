@@ -61,4 +61,17 @@ describe('PlaySession', () => {
     expect(session.isPlaying()).toBe(false);
     expect(engine.cleared).toBe(true);
   });
+
+  it('reports population and transition stats', async () => {
+    const engine = new FakeEngine();
+    const stats: Array<{ population: number; births: number; deaths: number; delta: number }> = [];
+    const session = new PlaySession(config(), async () => engine, (snapshot) => stats.push(snapshot), (() => 1) as typeof window.setInterval, (() => {}) as typeof window.clearInterval);
+    await session.switchEngine('js');
+
+    session.setCell(0, 0, true);
+    session.setCell(1, 1, true);
+    session.setCell(0, 0, false);
+
+    expect(stats.at(-1)).toMatchObject({ population: 1, births: 0, deaths: 1, delta: -1 });
+  });
 });

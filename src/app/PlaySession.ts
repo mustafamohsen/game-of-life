@@ -9,12 +9,18 @@ type SessionSnapshot = {
   width: number;
   height: number;
   cells: Uint8Array;
+  population: number;
+  births: number;
+  deaths: number;
+  delta: number;
 };
 
 export class PlaySession {
   private engine!: LifeEngine;
   private timer: number | undefined;
   private generation = 0;
+  private previousCells: Uint8Array | undefined;
+  private lastStats = { population: 0, births: 0, deaths: 0, delta: 0 };
 
   constructor(
     private readonly config: GameConfig,
@@ -34,7 +40,8 @@ export class PlaySession {
     this.engine = await this.createEngine(kind, this.config);
     this.config.engine = this.engine.kind;
     this.generation = 0;
-    this.emit();
+    this.previousCells = undefined;
+    this.emit(true);
     return this.engine.kind;
   }
 
@@ -65,43 +72,66 @@ export class PlaySession {
   step() {
     this.engine.step();
     this.generation++;
-    this.emit();
+    this.emit(true);
   }
 
   clear() {
     this.stop();
     this.engine.clear();
     this.generation = 0;
-    this.emit();
+    this.previousCells = undefined;
+    this.emit(true);
   }
 
   randomize(density = this.config.randomDensity) {
     this.engine.randomize(density);
     this.generation = 0;
-    this.emit();
+    this.previousCells = undefined;
+    this.emit(true);
   }
 
   setCell(x: number, y: number, alive: boolean) {
     this.engine.setCell(x, y, alive);
-    this.emit();
+    this.emit(true);
   }
 
   toggleCell(x: number, y: number) {
     this.engine.toggleCell(x, y);
-    this.emit();
+    this.emit(true);
   }
 
   redraw() {
-    this.emit();
+    this.emit(false);
   }
 
-  private emit() {
+  private emit(trackTransition: boolean) {
+    const cells = this.engine.getCells();
+    const stats = trackTransition ? this.calculateStats(cells) : this.lastStats;
+    this.lastStats = stats;
     this.onSnapshot({
       engine: this.config.engine,
       generation: this.generation,
       width: this.config.width,
       height: this.config.height,
-      cells: this.engine.getCells(),
+      cells,
+      ...stats,
     });
+    if (trackTransition) this.previousCells = new Uint8Array(cells);
+  }
+
+  private calculateStats(cells: Uint8Array) {
+    let population = 0;
+    let births = 0;
+    let deaths = 0;
+    const previous = this.previousCells;
+    for (let i = 0; i < cells.length; i++) {
+      const alive = cells[i] === 1;
+      const wasAlive = previous?.[i] === 1;
+      if (alive) population++;
+      if (!previous) continue;
+      if (alive && !wasAlive) births++;
+      else if (!alive && wasAlive) deaths++;
+    }
+    return { population, births, deaths, delta: births - deaths };
   }
 }
