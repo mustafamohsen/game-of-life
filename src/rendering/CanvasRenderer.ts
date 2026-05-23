@@ -40,9 +40,9 @@ export class CanvasRenderer {
     }
 
     this.ctx.save();
-    this.ctx.shadowColor = 'rgba(125, 214, 191, 0.38)';
-    this.ctx.shadowBlur = Math.max(4, cellSize * 1.15);
-    this.ctx.fillStyle = 'rgba(125, 214, 191, 0.58)';
+    this.ctx.shadowColor = 'rgba(120, 174, 232, 0.32)';
+    this.ctx.shadowBlur = Math.max(4, cellSize * 1.05);
+    this.ctx.fillStyle = 'rgba(120, 174, 232, 0.46)';
     this.ctx.fill(cellPath);
     this.ctx.restore();
 
@@ -56,8 +56,8 @@ export class CanvasRenderer {
   private drawFieldBackground(background: string) {
     const gradient = this.ctx.createLinearGradient(0, 0, this.canvas.width, this.canvas.height);
     gradient.addColorStop(0, background);
-    gradient.addColorStop(0.55, '#081714');
-    gradient.addColorStop(1, '#050b0a');
+    gradient.addColorStop(0.55, '#091522');
+    gradient.addColorStop(1, '#05080d');
     this.ctx.fillStyle = gradient;
     this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
   }
@@ -77,7 +77,7 @@ export class CanvasRenderer {
     }
     this.ctx.stroke();
 
-    this.ctx.strokeStyle = 'rgba(169, 189, 180, 0.12)';
+    this.ctx.strokeStyle = 'rgba(170, 190, 210, 0.11)';
     this.ctx.beginPath();
     for (let x = 0; x <= width; x += 10) {
       this.ctx.moveTo(x * cellSize + 0.5, 0);
