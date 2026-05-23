@@ -29,7 +29,32 @@ export class CanvasRenderer {
     ];
   }
 
-  draw(cells: Uint8Array) {
+  drawPatternPreview(cells: readonly [number, number][], centerX: number, centerY: number) {
+    const { width, height, cellSize } = this.config;
+    const maxX = Math.max(...cells.map(([x]) => x));
+    const maxY = Math.max(...cells.map(([, y]) => y));
+    const originX = centerX - Math.floor((maxX + 1) / 2);
+    const originY = centerY - Math.floor((maxY + 1) / 2);
+    const inset = cellSize >= 8 ? 1 : 0;
+    this.ctx.save();
+    this.ctx.globalAlpha = 0.58;
+    this.ctx.fillStyle = '#4d9dff';
+    this.ctx.strokeStyle = 'rgba(215, 221, 229, 0.72)';
+    this.ctx.lineWidth = 1;
+    for (const [x, y] of cells) {
+      const targetX = originX + x;
+      const targetY = originY + y;
+      if (targetX < 0 || targetY < 0 || targetX >= width || targetY >= height) continue;
+      const px = targetX * cellSize + inset;
+      const py = targetY * cellSize + inset;
+      const size = cellSize - inset * 2;
+      this.ctx.fillRect(px, py, size, size);
+      if (cellSize >= 7) this.ctx.strokeRect(px + 0.5, py + 0.5, size - 1, size - 1);
+    }
+    this.ctx.restore();
+  }
+
+  draw(cells: Uint8Array, rememberState = true) {
     const { width, height, cellSize, colors, showGrid } = this.config;
     this.drawFieldBackground(colors.background);
 
@@ -38,7 +63,7 @@ export class CanvasRenderer {
 
     if (showGrid && cellSize >= 5) this.drawGrid(width, height, cellSize, colors.grid);
     this.drawFrameShadow();
-    this.previousCells = new Uint8Array(cells);
+    if (rememberState) this.previousCells = new Uint8Array(cells);
   }
 
   private drawMonoCells(cells: Uint8Array, width: number, height: number, cellSize: number, aliveColor: string) {

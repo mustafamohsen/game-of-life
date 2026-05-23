@@ -13,6 +13,8 @@ export class GameController {
   private status: HTMLElement;
   private playButton: HTMLButtonElement;
   private shell: HTMLElement;
+  private latestCells: Uint8Array | undefined;
+  private pendingPattern: LifePattern | undefined;
 
   constructor(private root: HTMLElement) {
     root.innerHTML = this.template();
@@ -25,6 +27,7 @@ export class GameController {
       this.config,
       (kind, config) => this.createEngine(kind, config),
       (snapshot) => {
+        this.latestCells = snapshot.cells;
         this.renderer.draw(snapshot.cells);
         this.status.textContent = `${snapshot.engine.toUpperCase()} · Generation ${snapshot.generation} · ${snapshot.width}×${snapshot.height}`;
       },
@@ -68,9 +71,12 @@ export class GameController {
     patternSearch.oninput = () => this.filterPatterns(patternSearch.value);
     for (const button of this.root.querySelectorAll<HTMLButtonElement>('[data-pattern]')) {
       button.onclick = () => {
-        this.addPattern(button.dataset.pattern!);
+        this.selectPattern(button.dataset.pattern!);
         patternDialog.close();
       };
+    }
+    for (const button of this.root.querySelectorAll<HTMLButtonElement>('[data-category]')) {
+      button.onclick = () => this.setPatternCategory(button.dataset.category!);
     }
     this.root.querySelector<HTMLButtonElement>('#showcase')!.onclick = () => this.loadShowcase();
 
@@ -120,8 +126,16 @@ export class GameController {
     };
 
     let dragging = false;
-    canvas.addEventListener('mousedown', (e) => { dragging = true; this.toggleFromMouse(e); });
-    canvas.addEventListener('mousemove', (e) => { if (dragging) this.paintFromMouse(e); });
+    canvas.addEventListener('mousedown', (e) => {
+      dragging = true;
+      if (this.pendingPattern) this.placePendingPattern(e);
+      else this.toggleFromMouse(e);
+    });
+    canvas.addEventListener('mousemove', (e) => {
+      if (this.pendingPattern) this.previewPendingPattern(e);
+      else if (dragging) this.paintFromMouse(e);
+    });
+    canvas.addEventListener('mouseleave', () => this.redrawLatest());
     window.addEventListener('mouseup', () => { dragging = false; });
     window.addEventListener('keydown', (e) => this.handleKeyboard(e));
   }
@@ -167,6 +181,9 @@ export class GameController {
     } else if (key === 'f') {
       event.preventDefault();
       this.toggleSidebar();
+    } else if (key === 'escape' && this.pendingPattern) {
+      event.preventDefault();
+      this.cancelPendingPattern();
     }
   }
 
@@ -207,18 +224,57 @@ export class GameController {
     const normalized = query.trim().toLowerCase();
     for (const button of this.root.querySelectorAll<HTMLButtonElement>('[data-pattern]')) {
       const haystack = button.dataset.search ?? '';
-      button.hidden = normalized.length > 0 && !haystack.includes(normalized);
+      const matchesSearch = normalized.length === 0 || haystack.includes(normalized);
+      const activeCategory = this.root.querySelector<HTMLButtonElement>('[data-category].is-active')?.dataset.category ?? 'all';
+      const matchesCategory = activeCategory === 'all' || button.dataset.category === activeCategory;
+      button.hidden = !matchesSearch || !matchesCategory;
     }
+  }
+
+  private setPatternCategory(category: string) {
+    for (const button of this.root.querySelectorAll<HTMLButtonElement>('[data-category]')) {
+      const active = button.dataset.category === category;
+      button.classList.toggle('is-active', active);
+      button.setAttribute('aria-pressed', String(active));
+    }
+    this.filterPatterns(this.root.querySelector<HTMLInputElement>('#pattern-search')!.value);
+  }
+
+  private selectPattern(patternId: string) {
+    const pattern = LIFE_PATTERNS.find((candidate) => candidate.id === patternId);
+    if (!pattern) return;
+    this.pendingPattern = pattern;
+    this.root.querySelector<HTMLElement>('#pattern-mode')!.textContent = `Placing ${pattern.name}. Click the field, or press Esc.`;
+    this.shell.classList.add('placing-pattern');
+  }
+
+  private placePendingPattern(event: MouseEvent) {
+    if (!this.pendingPattern) return;
+    const [x, y] = this.renderer.cellFromEvent(event);
+    this.placePattern(this.pendingPattern, x, y);
+    this.cancelPendingPattern();
+  }
+
+  private previewPendingPattern(event: MouseEvent) {
+    if (!this.pendingPattern || !this.latestCells) return;
+    this.renderer.draw(this.latestCells, false);
+    const [x, y] = this.renderer.cellFromEvent(event);
+    this.renderer.drawPatternPreview(this.pendingPattern.cells, x, y);
+  }
+
+  private cancelPendingPattern() {
+    this.pendingPattern = undefined;
+    this.shell.classList.remove('placing-pattern');
+    this.root.querySelector<HTMLElement>('#pattern-mode')!.textContent = 'No pattern selected';
+    this.redrawLatest();
+  }
+
+  private redrawLatest() {
+    if (this.latestCells) this.renderer.draw(this.latestCells, false);
   }
 
   private toggleFromMouse(e: MouseEvent) { const [x, y] = this.renderer.cellFromEvent(e); this.session.toggleCell(x, y); }
   private paintFromMouse(e: MouseEvent) { const [x, y] = this.renderer.cellFromEvent(e); this.session.setCell(x, y, true); }
-
-  private addPattern(patternId: string) {
-    const pattern = LIFE_PATTERNS.find((candidate) => candidate.id === patternId);
-    if (!pattern) return;
-    this.placePattern(pattern, Math.floor(this.config.width / 2), Math.floor(this.config.height / 2));
-  }
 
   private loadShowcase() {
     this.session.clear();
@@ -248,12 +304,40 @@ export class GameController {
     }
   }
 
+  private patternCategory(pattern: LifePattern) {
+    const text = `${pattern.name} ${pattern.description}`.toLowerCase();
+    if (text.includes('spaceship') || text.includes('glider')) return 'spaceships';
+    if (text.includes('oscillator') || text.includes('period') || text.includes('shuttle')) return 'oscillators';
+    if (text.includes('still life')) return 'still-lifes';
+    if (text.includes('methuselah') || text.includes('heptomino') || text.includes('pentomino') || text.includes('seed')) return 'seeds';
+    return 'guns';
+  }
+
+  private patternPreview(pattern: LifePattern) {
+    const maxX = Math.max(...pattern.cells.map(([x]) => x));
+    const maxY = Math.max(...pattern.cells.map(([, y]) => y));
+    const cells = pattern.cells.map(([x, y]) => `<rect x="${x}" y="${y}" width="1" height="1" />`).join('');
+    return `<svg class="pattern-preview" viewBox="-1 -1 ${maxX + 3} ${maxY + 3}" aria-hidden="true">${cells}</svg>`;
+  }
+
   private template() {
     const ruleButtons = Object.entries(RULE_PRESETS).map(([key, preset]) => {
       const active = key === 'conway' ? ' is-active' : '';
       return `<button type="button" class="choice${active}" data-rule="${key}" aria-pressed="${key === 'conway'}"><span>${preset.label.split(' ')[0]}</span><small>${preset.label.split(' ').slice(1).join(' ')}</small></button>`;
     }).join('');
-    const patternButtons = LIFE_PATTERNS.map((pattern) => `<button type="button" class="pattern-card" data-pattern="${pattern.id}" data-search="${`${pattern.name} ${pattern.description}`.toLowerCase()}" title="${pattern.description}"><span>${pattern.name}</span><small>${pattern.description}</small></button>`).join('');
+    const categories = [
+      ['all', 'All'],
+      ['spaceships', 'Ships'],
+      ['oscillators', 'Oscillators'],
+      ['still-lifes', 'Still lifes'],
+      ['seeds', 'Seeds'],
+      ['guns', 'Guns'],
+    ];
+    const categoryButtons = categories.map(([id, label], index) => `<button type="button" class="category-chip${index === 0 ? ' is-active' : ''}" data-category="${id}" aria-pressed="${index === 0}">${label}</button>`).join('');
+    const patternButtons = LIFE_PATTERNS.map((pattern) => {
+      const category = this.patternCategory(pattern);
+      return `<button type="button" class="pattern-card" data-pattern="${pattern.id}" data-category="${category}" data-search="${`${pattern.name} ${pattern.description} ${category}`.toLowerCase()}" title="${pattern.description}">${this.patternPreview(pattern)}<span>${pattern.name}</span><small>${pattern.description}</small></button>`;
+    }).join('');
 
     return `<section class="shell">
       <aside id="control-panel" class="panel" aria-label="Simulation controls">
@@ -275,6 +359,7 @@ export class GameController {
             <span>Patterns</span>
             <small>${LIFE_PATTERNS.length} available</small>
           </button>
+          <p id="pattern-mode" class="pattern-mode">No pattern selected</p>
           <button id="showcase" class="pattern-card showcase" type="button"><span>Load showcase</span><small>compose a living gallery</small></button>
         </section>
 
@@ -330,6 +415,7 @@ export class GameController {
             <button id="close-pattern-library" class="sidebar-toggle" type="button" aria-label="Close pattern library">×</button>
           </header>
           <input id="pattern-search" class="pattern-search" type="search" placeholder="Search gliders, oscillators, still lifes…" autocomplete="off">
+          <div class="category-strip" role="group" aria-label="Pattern categories">${categoryButtons}</div>
           <div class="library-grid">${patternButtons}</div>
         </div>
       </dialog>
