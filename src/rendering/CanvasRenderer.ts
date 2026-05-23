@@ -3,6 +3,7 @@ import type { GameConfig } from '../app/Config';
 export class CanvasRenderer {
   private ctx: CanvasRenderingContext2D;
   private previousCells: Uint8Array | undefined;
+  private lastCells: Uint8Array | undefined;
 
   constructor(public readonly canvas: HTMLCanvasElement, private config: GameConfig) {
     const ctx = canvas.getContext('2d');
@@ -17,6 +18,7 @@ export class CanvasRenderer {
     this.canvas.height = config.height * config.cellSize;
     this.canvas.style.setProperty('--canvas-aspect', String(config.width / config.height));
     this.previousCells = undefined;
+    this.lastCells = undefined;
   }
 
   cellFromEvent(event: MouseEvent): [number, number] {
@@ -63,7 +65,10 @@ export class CanvasRenderer {
 
     if (showGrid && cellSize >= 5) this.drawGrid(width, height, cellSize, colors.grid);
     this.drawFrameShadow();
-    if (rememberState) this.previousCells = new Uint8Array(cells);
+    if (rememberState) {
+      this.previousCells = this.lastCells;
+      this.lastCells = new Uint8Array(cells);
+    }
   }
 
   private drawMonoCells(cells: Uint8Array, width: number, height: number, cellSize: number, aliveColor: string) {
