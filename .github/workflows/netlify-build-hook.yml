@@ -1,0 +1,21 @@
+name: Deploy to Netlify
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  trigger-netlify:
+    name: Trigger Netlify build hook
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call Netlify build hook
+        env:
+          NETLIFY_BUILD_HOOK: ${{ secrets.NETLIFY_BUILD_HOOK }}
+        run: |
+          if [ -z "$NETLIFY_BUILD_HOOK" ]; then
+            echo "NETLIFY_BUILD_HOOK secret is not set"
+            exit 1
+          fi
+          curl --fail --show-error --silent --request POST "$NETLIFY_BUILD_HOOK"
