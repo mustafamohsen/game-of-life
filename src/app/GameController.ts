@@ -75,7 +75,7 @@ export class GameController {
         patternDialog.close();
       };
     }
-    for (const button of this.root.querySelectorAll<HTMLButtonElement>('[data-category]')) {
+    for (const button of this.root.querySelectorAll<HTMLButtonElement>('.category-chip')) {
       button.onclick = () => this.setPatternCategory(button.dataset.category!);
     }
     this.root.querySelector<HTMLButtonElement>('#showcase')!.onclick = () => this.loadShowcase();
@@ -225,14 +225,14 @@ export class GameController {
     for (const button of this.root.querySelectorAll<HTMLButtonElement>('[data-pattern]')) {
       const haystack = button.dataset.search ?? '';
       const matchesSearch = normalized.length === 0 || haystack.includes(normalized);
-      const activeCategory = this.root.querySelector<HTMLButtonElement>('[data-category].is-active')?.dataset.category ?? 'all';
+      const activeCategory = this.root.querySelector<HTMLButtonElement>('.category-chip.is-active')?.dataset.category ?? 'all';
       const matchesCategory = activeCategory === 'all' || button.dataset.category === activeCategory;
       button.hidden = !matchesSearch || !matchesCategory;
     }
   }
 
   private setPatternCategory(category: string) {
-    for (const button of this.root.querySelectorAll<HTMLButtonElement>('[data-category]')) {
+    for (const button of this.root.querySelectorAll<HTMLButtonElement>('.category-chip')) {
       const active = button.dataset.category === category;
       button.classList.toggle('is-active', active);
       button.setAttribute('aria-pressed', String(active));
