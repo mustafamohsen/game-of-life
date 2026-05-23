@@ -14,6 +14,7 @@ export class CanvasRenderer {
     this.config = config;
     this.canvas.width = config.width * config.cellSize;
     this.canvas.height = config.height * config.cellSize;
+    this.canvas.style.setProperty('--canvas-aspect', String(config.width / config.height));
   }
 
   cellFromEvent(event: MouseEvent): [number, number] {
