@@ -57,8 +57,20 @@ export class GameController {
     this.root.querySelector<HTMLButtonElement>('#random')!.onclick = () => this.session.randomize();
     this.root.querySelector<HTMLButtonElement>('#sidebar-toggle')!.onclick = () => this.toggleSidebar();
 
+    const patternDialog = this.root.querySelector<HTMLDialogElement>('#pattern-library')!;
+    const patternSearch = this.root.querySelector<HTMLInputElement>('#pattern-search')!;
+    this.root.querySelector<HTMLButtonElement>('#open-pattern-library')!.onclick = () => {
+      patternDialog.showModal();
+      patternSearch.focus();
+    };
+    this.root.querySelector<HTMLButtonElement>('#close-pattern-library')!.onclick = () => patternDialog.close();
+    patternDialog.onclick = (event) => { if (event.target === patternDialog) patternDialog.close(); };
+    patternSearch.oninput = () => this.filterPatterns(patternSearch.value);
     for (const button of this.root.querySelectorAll<HTMLButtonElement>('[data-pattern]')) {
-      button.onclick = () => this.addPattern(button.dataset.pattern!);
+      button.onclick = () => {
+        this.addPattern(button.dataset.pattern!);
+        patternDialog.close();
+      };
     }
     this.root.querySelector<HTMLButtonElement>('#showcase')!.onclick = () => this.loadShowcase();
 
@@ -147,6 +159,14 @@ export class GameController {
     }
   }
 
+  private filterPatterns(query: string) {
+    const normalized = query.trim().toLowerCase();
+    for (const button of this.root.querySelectorAll<HTMLButtonElement>('[data-pattern]')) {
+      const haystack = button.dataset.search ?? '';
+      button.hidden = normalized.length > 0 && !haystack.includes(normalized);
+    }
+  }
+
   private toggleFromMouse(e: MouseEvent) { const [x, y] = this.renderer.cellFromEvent(e); this.session.toggleCell(x, y); }
   private paintFromMouse(e: MouseEvent) { const [x, y] = this.renderer.cellFromEvent(e); this.session.setCell(x, y, true); }
 
@@ -189,7 +209,7 @@ export class GameController {
       const active = key === 'conway' ? ' is-active' : '';
       return `<button type="button" class="choice${active}" data-rule="${key}" aria-pressed="${key === 'conway'}"><span>${preset.label.split(' ')[0]}</span><small>${preset.label.split(' ').slice(1).join(' ')}</small></button>`;
     }).join('');
-    const patternButtons = LIFE_PATTERNS.map((pattern) => `<button type="button" class="pattern-card" data-pattern="${pattern.id}" title="${pattern.description}"><span>${pattern.name}</span><small>${pattern.description}</small></button>`).join('');
+    const patternButtons = LIFE_PATTERNS.map((pattern) => `<button type="button" class="pattern-card" data-pattern="${pattern.id}" data-search="${`${pattern.name} ${pattern.description}`.toLowerCase()}" title="${pattern.description}"><span>${pattern.name}</span><small>${pattern.description}</small></button>`).join('');
 
     return `<section class="shell">
       <aside id="control-panel" class="panel" aria-label="Simulation controls">
@@ -207,7 +227,11 @@ export class GameController {
 
         <section class="control-card patterns">
           <div class="card-label">Pattern deck</div>
-          <div class="pattern-buttons">${patternButtons}<button id="showcase" class="pattern-card showcase" type="button"><span>Load showcase</span><small>compose a living gallery</small></button></div>
+          <button id="open-pattern-library" class="pattern-library-trigger" type="button">
+            <span>Browse patterns</span>
+            <small>${LIFE_PATTERNS.length} patterns · searchable library</small>
+          </button>
+          <button id="showcase" class="pattern-card showcase" type="button"><span>Load showcase</span><small>compose a living gallery</small></button>
         </section>
 
         <section class="control-card slider-bank">
@@ -250,6 +274,20 @@ export class GameController {
           <canvas id="life-canvas" aria-label="Game of Life grid"></canvas>
         </div>
       </section>
+
+      <dialog id="pattern-library" class="pattern-library" aria-labelledby="pattern-library-title">
+        <div class="library-panel">
+          <header class="library-header">
+            <div>
+              <p class="card-label">Pattern deck</p>
+              <h2 id="pattern-library-title">Pattern library</h2>
+            </div>
+            <button id="close-pattern-library" class="sidebar-toggle" type="button" aria-label="Close pattern library">×</button>
+          </header>
+          <input id="pattern-search" class="pattern-search" type="search" placeholder="Search gliders, oscillators, still lifes…" autocomplete="off">
+          <div class="library-grid">${patternButtons}</div>
+        </div>
+      </dialog>
     </section>`;
   }
 }
