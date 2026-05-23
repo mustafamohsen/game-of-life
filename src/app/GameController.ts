@@ -36,7 +36,7 @@ export class GameController {
         this.latestStatsHistory = snapshot.statsHistory;
         this.root.dispatchEvent(new CustomEvent('life:stats', { detail: { latest: snapshot, history: this.latestStatsHistory } }));
         this.renderer.draw(snapshot.cells);
-        this.status.innerHTML = `<span>${snapshot.engine.toUpperCase()} · Gen ${snapshot.generation} · ${snapshot.width}×${snapshot.height}</span><span>Pop ${snapshot.population}</span><span>Births ${snapshot.births}</span><span>Deaths ${snapshot.deaths}</span><span>Δ ${snapshot.delta >= 0 ? '+' : ''}${snapshot.delta}</span>`;
+        this.status.innerHTML = `<span>${snapshot.engine.toUpperCase()} · Gen ${snapshot.generation} · ${snapshot.width}×${snapshot.height}</span><span>Pop ${snapshot.population}</span><span>Births ${snapshot.births}</span><span>Deaths ${snapshot.deaths}</span><span>Δ ${snapshot.delta >= 0 ? '+' : ''}${snapshot.delta}</span><span>Period ${snapshot.period ?? '—'}</span>`;
       },
     );
     this.bindControls(canvas);
@@ -318,7 +318,7 @@ export class GameController {
       const targetX = originX + x;
       const targetY = originY + y;
       if (targetX >= 0 && targetY >= 0 && targetX < this.config.width && targetY < this.config.height) {
-        this.session.setCell(targetX, targetY, true);
+        this.session.setCell(targetX, targetY, true, 'pattern');
       }
     }
   }
@@ -434,14 +434,21 @@ export class GameController {
             <span>Births <b id="stats-births">0</b></span>
             <span>Deaths <b id="stats-deaths">0</b></span>
             <span>Δ <b id="stats-delta">+0</b></span>
+            <span>Density <b id="stats-density">0%</b></span>
+            <span>Churn <b id="stats-churn">0.00</b></span>
+            <span>Period <b id="stats-period">—</b></span>
           </div>
           <section class="chart-card">
             <span>Population</span>
-            <svg viewBox="0 0 320 96" preserveAspectRatio="none" aria-hidden="true"><path id="population-path"></path></svg>
+            <svg viewBox="0 0 320 96" preserveAspectRatio="none" aria-hidden="true"><g id="event-markers" class="event-markers"></g><path id="population-path"></path></svg>
           </section>
           <section class="chart-card compact">
             <span>Births / deaths</span>
             <svg viewBox="0 0 320 72" preserveAspectRatio="none" aria-hidden="true"><path id="births-path" class="births"></path><path id="deaths-path" class="deaths"></path></svg>
+          </section>
+          <section class="chart-card compact mini-charts">
+            <span>Density / churn</span>
+            <svg viewBox="0 0 320 56" preserveAspectRatio="none" aria-hidden="true"><path id="density-path" class="density"></path><path id="churn-path" class="churn"></path></svg>
           </section>
         </aside>
       </section>

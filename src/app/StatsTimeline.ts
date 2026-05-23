@@ -1,9 +1,15 @@
+export type StatsEvent = 'step' | 'seed' | 'wipe' | 'edit' | 'pattern' | 'rebuild';
+
 export type StatsSample = {
   generation: number;
   population: number;
   births: number;
   deaths: number;
   delta: number;
+  density: number;
+  churn: number;
+  period: number | undefined;
+  event: StatsEvent | undefined;
 };
 
 export class StatsTimeline {

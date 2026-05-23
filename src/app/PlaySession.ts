@@ -1,6 +1,6 @@
 import type { EngineKind, GameConfig } from './Config';
 import type { LifeEngine } from '../engines/LifeEngine';
-import { StatsTimeline, type StatsSample } from './StatsTimeline';
+import { StatsTimeline, type StatsEvent, type StatsSample } from './StatsTimeline';
 
 export type EngineFactory = (kind: EngineKind, config: GameConfig) => Promise<LifeEngine>;
 
@@ -14,6 +14,10 @@ type SessionSnapshot = {
   births: number;
   deaths: number;
   delta: number;
+  density: number;
+  churn: number;
+  period: number | undefined;
+  event: StatsEvent | undefined;
   statsHistory: readonly StatsSample[];
 };
 
@@ -22,8 +26,9 @@ export class PlaySession {
   private timer: number | undefined;
   private generation = 0;
   private previousCells: Uint8Array | undefined;
-  private lastStats = { population: 0, births: 0, deaths: 0, delta: 0 };
+  private lastStats = { population: 0, births: 0, deaths: 0, delta: 0, density: 0, churn: 0, period: undefined as number | undefined };
   private readonly statsTimeline = new StatsTimeline();
+  private readonly seenStates = new Map<string, number>();
 
   constructor(
     private readonly config: GameConfig,
@@ -44,7 +49,8 @@ export class PlaySession {
     this.config.engine = this.engine.kind;
     this.generation = 0;
     this.previousCells = undefined;
-    this.emit(true, 'reset');
+    this.seenStates.clear();
+    this.emit(true, 'reset', 'rebuild');
     return this.engine.kind;
   }
 
@@ -75,7 +81,7 @@ export class PlaySession {
   step() {
     this.engine.step();
     this.generation++;
-    this.emit(true, 'append');
+    this.emit(true, 'append', 'step');
   }
 
   clear() {
@@ -83,34 +89,36 @@ export class PlaySession {
     this.engine.clear();
     this.generation = 0;
     this.previousCells = undefined;
-    this.emit(true, 'reset');
+    this.seenStates.clear();
+    this.emit(true, 'reset', 'wipe');
   }
 
   randomize(density = this.config.randomDensity) {
     this.engine.randomize(density);
     this.generation = 0;
     this.previousCells = undefined;
-    this.emit(true, 'reset');
+    this.seenStates.clear();
+    this.emit(true, 'reset', 'seed');
   }
 
-  setCell(x: number, y: number, alive: boolean) {
+  setCell(x: number, y: number, alive: boolean, event: StatsEvent = 'edit') {
     this.engine.setCell(x, y, alive);
-    this.emit(true, 'append');
+    this.emit(true, 'append', event);
   }
 
   toggleCell(x: number, y: number) {
     this.engine.toggleCell(x, y);
-    this.emit(true, 'append');
+    this.emit(true, 'append', 'edit');
   }
 
   redraw() {
     this.emit(false, 'none');
   }
 
-  private emit(trackTransition: boolean, timelineMode: 'append' | 'reset' | 'none') {
+  private emit(trackTransition: boolean, timelineMode: 'append' | 'reset' | 'none', event?: StatsEvent) {
     const cells = this.engine.getCells();
     const stats = trackTransition ? this.calculateStats(cells) : this.lastStats;
-    const sample = { generation: this.generation, ...stats };
+    const sample = { generation: this.generation, ...stats, event };
     this.lastStats = stats;
     if (timelineMode === 'reset') this.statsTimeline.reset(sample);
     else if (timelineMode === 'append') this.statsTimeline.append(sample);
@@ -122,6 +130,7 @@ export class PlaySession {
       height: this.config.height,
       cells,
       ...stats,
+      event,
       statsHistory: this.statsTimeline.snapshot(),
     });
     if (trackTransition) this.previousCells = new Uint8Array(cells);
@@ -140,6 +149,25 @@ export class PlaySession {
       if (alive && !wasAlive) births++;
       else if (!alive && wasAlive) deaths++;
     }
-    return { population, births, deaths, delta: births - deaths };
+    const density = population / cells.length;
+    const churn = population === 0 ? 0 : (births + deaths) / population;
+    const period = this.detectPeriod(cells);
+    return { population, births, deaths, delta: births - deaths, density, churn, period };
+  }
+
+  private detectPeriod(cells: Uint8Array) {
+    const hash = this.hashCells(cells);
+    const previousGeneration = this.seenStates.get(hash);
+    this.seenStates.set(hash, this.generation);
+    return previousGeneration === undefined ? undefined : this.generation - previousGeneration;
+  }
+
+  private hashCells(cells: Uint8Array) {
+    let hash = 2166136261;
+    for (let i = 0; i < cells.length; i++) {
+      hash ^= cells[i];
+      hash = Math.imul(hash, 16777619);
+    }
+    return hash.toString(36);
   }
 }
