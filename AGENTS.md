@@ -3,6 +3,7 @@
 - Use Bun for JavaScript/TypeScript package management and scripts; do not use npm for this project.
 - Use conventional commits for all git commits, e.g. `feat: ...`, `fix: ...`, `chore: ...`, `docs: ...`, `test: ...`.
 - Commit often without waiting for explicit user permission, as long as the change is coherent and validation has been run when practical.
+- Never push unless explicitly ordered to
 - Keep commits atomic: each commit should represent one coherent change.
 - Run relevant validation before committing when possible:
   - `bun test`
