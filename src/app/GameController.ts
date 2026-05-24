@@ -391,6 +391,13 @@ export class GameController {
 
     return `<section class="shell">
       <aside id="control-panel" class="panel" aria-label="Simulation controls">
+        <section class="brand-card" aria-label="Connected Loops Labs Game of Life Statistics">
+          <img src="/assets/cell-cluster-emblem.svg" alt="" class="brand-logo">
+          <div>
+            <span>Connected Loops Labs</span>
+            <strong>Game of Life Statistics</strong>
+          </div>
+        </section>
         <strong id="status" class="status-pill"></strong>
 
         <section class="control-card command-card">
