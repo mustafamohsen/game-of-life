@@ -7,6 +7,7 @@ import { LIFE_PATTERNS, type LifePattern } from './Patterns';
 import { PlaySession } from './PlaySession';
 import type { StatsSample } from './StatsTimeline';
 import { StatsGraphPanel } from './StatsGraphPanel';
+import emblemUrl from '../../assets/cell-cluster-emblem.svg?url';
 
 export class GameController {
   private config: GameConfig = structuredClone(DEFAULT_CONFIG);
@@ -392,7 +393,7 @@ export class GameController {
     return `<section class="shell">
       <aside id="control-panel" class="panel" aria-label="Simulation controls">
         <section class="brand-card" aria-label="Connected Loops Labs Game of Life Statistics">
-          <img src="/assets/cell-cluster-emblem.svg" alt="" class="brand-logo">
+          <img src="${emblemUrl}" alt="" class="brand-logo">
           <div>
             <span>Connected Loops Labs</span>
             <strong>Game of Life Statistics</strong>
