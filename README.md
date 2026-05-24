@@ -1,5 +1,7 @@
 # Game of Life
 
+![Game of Life Statistics](assets/title-card.svg)
+
 A small Conway's Game of Life playground for the browser.
 
 It has a TypeScript UI, a canvas renderer, and a Rust WebAssembly engine for the simulation. If WASM does not load, it falls back to the TypeScript engine.

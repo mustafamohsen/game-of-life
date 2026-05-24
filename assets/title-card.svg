@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 360" role="img" aria-labelledby="title desc">
+  <title id="title">Game of Life Statistics</title>
+  <desc id="desc">Project title image with cell cluster logo and text.</desc>
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600;700&amp;display=swap');
+      .title { font-family: 'IBM Plex Mono', monospace; font-size: 58px; font-weight: 700; letter-spacing: -2px; fill: #d7dde5; }
+      .meta { font-family: 'IBM Plex Mono', monospace; font-size: 18px; font-weight: 600; letter-spacing: 4px; text-transform: uppercase; fill: #768391; }
+    </style>
+  </defs>
+
+  <rect width="1200" height="360" rx="34" fill="#050608"/>
+  <path d="M0 302h1200M0 246h1200M0 190h1200M0 134h1200M0 78h1200M162 0v360M330 0v360M498 0v360M666 0v360M834 0v360M1002 0v360" stroke="#263142" stroke-width="1" opacity="0.32"/>
+  <rect x="34" y="34" width="1132" height="292" rx="28" fill="#080b10" stroke="#263142" stroke-width="2"/>
+
+  <g transform="translate(92 84) scale(1.5)">
+    <rect x="22" y="22" width="84" height="84" rx="14" fill="#080b10" stroke="#263142" stroke-width="2"/>
+    <g fill="#c8ccd2">
+      <rect x="42" y="34" width="13" height="13" rx="2"/>
+      <rect x="56" y="48" width="13" height="13" rx="2"/>
+      <rect x="70" y="62" width="13" height="13" rx="2"/>
+      <rect x="42" y="76" width="13" height="13" rx="2"/>
+      <rect x="56" y="76" width="13" height="13" rx="2"/>
+      <rect x="70" y="76" width="13" height="13" rx="2"/>
+    </g>
+    <rect x="70" y="34" width="13" height="13" rx="2" fill="#4d9dff"/>
+  </g>
+
+  <g transform="translate(292 124)">
+    <text class="meta" x="0" y="0">Connected Loops Labs</text>
+    <text class="title" x="0" y="88">Game of Life Statistics</text>
+    <path d="M2 128h736" stroke="#4d9dff" stroke-width="3" stroke-linecap="round" opacity="0.75"/>
+  </g>
+</svg>
