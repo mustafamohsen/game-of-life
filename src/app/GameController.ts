@@ -239,6 +239,12 @@ export class GameController {
     } else if (key === 'r') {
       event.preventDefault();
       this.randomizeWorld();
+    } else if (key === 'arrowleft' || key === ',') {
+      event.preventDefault();
+      this.stepBackward();
+    } else if (key === 'arrowright' || key === '.') {
+      event.preventDefault();
+      this.stepForward();
     } else if (key === '[' || key === '-') {
       event.preventDefault();
       this.adjustSpeed(1, event.shiftKey);
@@ -429,8 +435,8 @@ export class GameController {
           <div class="card-label">Transport</div>
           <div class="transport-grid">
             <button id="play" class="command primary" type="button" data-state="paused" data-shortcut="Space / K"><span>Run</span></button>
-            <button id="step-back" class="command step-command" type="button" aria-label="Step backward one generation" disabled><span>← Back</span></button>
-            <button id="step-forward" class="command step-command" type="button" aria-label="Step forward one generation"><span>Forward →</span></button>
+            <button id="step-back" class="command step-command" type="button" aria-label="Step backward one generation" data-shortcut="← / ," disabled><span aria-hidden="true">‹</span></button>
+            <button id="step-forward" class="command step-command" type="button" aria-label="Step forward one generation" data-shortcut="→ / ."><span aria-hidden="true">›</span></button>
             <button id="random" class="command" type="button" data-shortcut="R"><span>Randomize</span></button>
             <button id="clear" class="command danger" type="button" data-shortcut="C"><span>Clear</span></button>
           </div>

@@ -21,6 +21,7 @@ It has a TypeScript UI, a canvas renderer, and a Rust WebAssembly engine for the
 - `Space` or `K`: run / pause
 - `R`: randomize the world
 - `C`: clear the world
+- `←` / `→` or `,` / `.`: step backward / forward
 - `[` / `]`: slower / faster
 - `F`: collapse or expand the controls
 - `S`: show or hide the stats panel
