@@ -1,11 +1,11 @@
-import { describe, expect, it } from 'vitest';
-import { DEFAULT_CONFIG } from '../app/Config';
-import { JsLifeEngine } from './JsLifeEngine';
+import { describe, expect, it } from "vitest";
+import { DEFAULT_CONFIG } from "../app/Config";
+import { JsLifeEngine } from "./JsLifeEngine";
 
 const config = { ...DEFAULT_CONFIG, width: 5, height: 5, wrapEdges: false };
 
-describe('JsLifeEngine', () => {
-  it('keeps a block still life stable', () => {
+describe("JsLifeEngine", () => {
+  it("keeps a block still life stable", () => {
     const engine = new JsLifeEngine(config);
     engine.setCell(1, 1, true);
     engine.setCell(2, 1, true);
@@ -16,7 +16,7 @@ describe('JsLifeEngine', () => {
     expect([...engine.getCells()]).toEqual(before);
   });
 
-  it('oscillates a blinker', () => {
+  it("oscillates a blinker", () => {
     const engine = new JsLifeEngine(config);
     engine.setCell(2, 1, true);
     engine.setCell(2, 2, true);

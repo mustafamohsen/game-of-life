@@ -1,5 +1,5 @@
 export interface LifeEngine {
-  readonly kind: 'wasm' | 'js';
+  readonly kind: "wasm" | "js";
   width(): number;
   height(): number;
   step(): void;

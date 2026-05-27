@@ -4,7 +4,6 @@
   "private": true,
   "license": "MIT",
   "type": "module",
-  "packageManager": "bun@latest",
   "scripts": {
     "dev": "vite",
     "build:wasm": "wasm-pack build wasm-engine --target web --out-dir pkg",
@@ -14,11 +13,12 @@
   },
   "dependencies": {
     "@vitejs/plugin-basic-ssl": "latest",
-    "vite": "latest",
-    "typescript": "latest"
+    "typescript": "latest",
+    "vite": "latest"
   },
   "devDependencies": {
     "vitest": "latest",
     "wasm-pack": "^0.15.0"
-  }
+  },
+  "packageManager": "bun@latest"
 }

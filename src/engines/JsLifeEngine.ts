@@ -1,8 +1,8 @@
-import type { LifeEngine } from './LifeEngine';
-import { ruleMask, type GameConfig } from '../app/Config';
+import type { LifeEngine } from "./LifeEngine";
+import { ruleMask, type GameConfig } from "../app/Config";
 
 export class JsLifeEngine implements LifeEngine {
-  readonly kind = 'js' as const;
+  readonly kind = "js" as const;
   private cells: Uint8Array;
   private next: Uint8Array;
   private birthMask: number;
@@ -15,10 +15,18 @@ export class JsLifeEngine implements LifeEngine {
     this.survivalMask = ruleMask(config.survivalRules);
   }
 
-  width() { return this.config.width; }
-  height() { return this.config.height; }
-  getCells() { return this.cells; }
-  clear() { this.cells.fill(0); }
+  width() {
+    return this.config.width;
+  }
+  height() {
+    return this.config.height;
+  }
+  getCells() {
+    return this.cells;
+  }
+  clear() {
+    this.cells.fill(0);
+  }
 
   randomize(density: number) {
     for (let i = 0; i < this.cells.length; i++) this.cells[i] = Math.random() < density ? 1 : 0;
@@ -53,14 +61,17 @@ export class JsLifeEngine implements LifeEngine {
     let count = 0;
     const w = this.width();
     const h = this.height();
-    for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
-      if (dx === 0 && dy === 0) continue;
-      let nx = x + dx, ny = y + dy;
-      if (this.config.wrapEdges) {
-        nx = (nx + w) % w; ny = (ny + h) % h;
-      } else if (nx < 0 || ny < 0 || nx >= w || ny >= h) continue;
-      count += this.cells[ny * w + nx];
-    }
+    for (let dy = -1; dy <= 1; dy++)
+      for (let dx = -1; dx <= 1; dx++) {
+        if (dx === 0 && dy === 0) continue;
+        let nx = x + dx,
+          ny = y + dy;
+        if (this.config.wrapEdges) {
+          nx = (nx + w) % w;
+          ny = (ny + h) % h;
+        } else if (nx < 0 || ny < 0 || nx >= w || ny >= h) continue;
+        count += this.cells[ny * w + nx];
+      }
     return count;
   }
 }

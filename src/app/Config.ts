@@ -1,4 +1,4 @@
-export type EngineKind = 'wasm' | 'js';
+export type EngineKind = "wasm" | "js";
 
 export type GameConfig = {
   width: number;
@@ -20,10 +20,14 @@ export type GameConfig = {
 };
 
 export const RULE_PRESETS = {
-  conway: { label: 'Conway B3/S23', birth: [3], survival: [2, 3] },
-  highLife: { label: 'HighLife B36/S23', birth: [3, 6], survival: [2, 3] },
-  seeds: { label: 'Seeds B2/S', birth: [2], survival: [] },
-  dayAndNight: { label: 'Day & Night B3678/S34678', birth: [3, 6, 7, 8], survival: [3, 4, 6, 7, 8] },
+  conway: { label: "Conway B3/S23", birth: [3], survival: [2, 3] },
+  highLife: { label: "HighLife B36/S23", birth: [3, 6], survival: [2, 3] },
+  seeds: { label: "Seeds B2/S", birth: [2], survival: [] },
+  dayAndNight: {
+    label: "Day & Night B3678/S34678",
+    birth: [3, 6, 7, 8],
+    survival: [3, 4, 6, 7, 8],
+  },
 } as const;
 
 export const DEFAULT_CONFIG: GameConfig = {
@@ -35,13 +39,13 @@ export const DEFAULT_CONFIG: GameConfig = {
   randomDensity: 0.25,
   birthRules: [...RULE_PRESETS.conway.birth],
   survivalRules: [...RULE_PRESETS.conway.survival],
-  engine: 'wasm',
+  engine: "wasm",
   showGrid: true,
   colorizeStates: false,
   colors: {
-    background: '#050608',
-    alive: '#c8ccd2',
-    grid: 'rgba(150, 170, 195, 0.08)',
+    background: "#050608",
+    alive: "#c8ccd2",
+    grid: "rgba(150, 170, 195, 0.08)",
   },
 };
 

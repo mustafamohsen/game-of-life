@@ -1,48 +1,81 @@
-import { describe, expect, it } from 'vitest';
-import { DEFAULT_CONFIG, type GameConfig } from './Config';
-import { PlaySession } from './PlaySession';
-import type { LifeEngine } from '../engines/LifeEngine';
+import { describe, expect, it } from "vitest";
+import { DEFAULT_CONFIG, type GameConfig } from "./Config";
+import { PlaySession } from "./PlaySession";
+import type { LifeEngine } from "../engines/LifeEngine";
 
 class FakeEngine implements LifeEngine {
-  readonly kind = 'js' as const;
+  readonly kind = "js" as const;
   cells = new Uint8Array(4);
   steps = 0;
   cleared = false;
   randomizedWith: number | undefined;
 
-  width() { return 2; }
-  height() { return 2; }
+  width() {
+    return 2;
+  }
+  height() {
+    return 2;
+  }
   step() {
     this.steps++;
     this.cells = Uint8Array.from([this.cells[3], this.cells[0], this.cells[1], this.cells[2]]);
   }
-  clear() { this.cleared = true; this.cells.fill(0); }
-  randomize(density: number) { this.randomizedWith = density; }
-  setCell(x: number, y: number, alive: boolean) { if (x >= 0 && y >= 0 && x < 2 && y < 2) this.cells[y * 2 + x] = alive ? 1 : 0; }
-  toggleCell(x: number, y: number) { if (x >= 0 && y >= 0 && x < 2 && y < 2) this.cells[y * 2 + x] = this.cells[y * 2 + x] ? 0 : 1; }
-  getCells() { return this.cells; }
+  clear() {
+    this.cleared = true;
+    this.cells.fill(0);
+  }
+  randomize(density: number) {
+    this.randomizedWith = density;
+  }
+  setCell(x: number, y: number, alive: boolean) {
+    if (x >= 0 && y >= 0 && x < 2 && y < 2) this.cells[y * 2 + x] = alive ? 1 : 0;
+  }
+  toggleCell(x: number, y: number) {
+    if (x >= 0 && y >= 0 && x < 2 && y < 2) this.cells[y * 2 + x] = this.cells[y * 2 + x] ? 0 : 1;
+  }
+  getCells() {
+    return this.cells;
+  }
 }
 
-const config = (): GameConfig => ({ ...DEFAULT_CONFIG, width: 2, height: 2, engine: 'js', randomDensity: 0.4 });
+const config = (): GameConfig => ({
+  ...DEFAULT_CONFIG,
+  width: 2,
+  height: 2,
+  engine: "js",
+  randomDensity: 0.4,
+});
 
-describe('PlaySession', () => {
-  it('starts by creating an engine, randomizing, and emitting a generation-zero snapshot', async () => {
+describe("PlaySession", () => {
+  it("starts by creating an engine, randomizing, and emitting a generation-zero snapshot", async () => {
     const engine = new FakeEngine();
     const snapshots: Array<{ generation: number; cells: Uint8Array }> = [];
-    const session = new PlaySession(config(), async () => engine, (snapshot) => snapshots.push(snapshot), (() => 1) as typeof window.setInterval, (() => {}) as typeof window.clearInterval);
+    const session = new PlaySession(
+      config(),
+      async () => engine,
+      (snapshot) => snapshots.push(snapshot),
+      (() => 1) as typeof window.setInterval,
+      (() => {}) as typeof window.clearInterval,
+    );
 
-    await session.start('js');
+    await session.start("js");
 
     expect(engine.randomizedWith).toBe(0.4);
     expect(snapshots.at(-1)?.generation).toBe(0);
     expect(snapshots.at(-1)?.cells).toBe(engine.cells);
   });
 
-  it('owns stepping and generation count behind one interface', async () => {
+  it("owns stepping and generation count behind one interface", async () => {
     const engine = new FakeEngine();
     const generations: number[] = [];
-    const session = new PlaySession(config(), async () => engine, (snapshot) => generations.push(snapshot.generation), (() => 1) as typeof window.setInterval, (() => {}) as typeof window.clearInterval);
-    await session.switchEngine('js');
+    const session = new PlaySession(
+      config(),
+      async () => engine,
+      (snapshot) => generations.push(snapshot.generation),
+      (() => 1) as typeof window.setInterval,
+      (() => {}) as typeof window.clearInterval,
+    );
+    await session.switchEngine("js");
 
     session.step();
     session.step();
@@ -51,11 +84,18 @@ describe('PlaySession', () => {
     expect(generations).toEqual([0, 1, 2]);
   });
 
-  it('steps backward to the previous generation', async () => {
+  it("steps backward to the previous generation", async () => {
     const engine = new FakeEngine();
     const snapshots: Array<{ generation: number; cells: Uint8Array }> = [];
-    const session = new PlaySession(config(), async () => engine, (snapshot) => snapshots.push({ generation: snapshot.generation, cells: new Uint8Array(snapshot.cells) }), (() => 1) as typeof window.setInterval, (() => {}) as typeof window.clearInterval);
-    await session.switchEngine('js');
+    const session = new PlaySession(
+      config(),
+      async () => engine,
+      (snapshot) =>
+        snapshots.push({ generation: snapshot.generation, cells: new Uint8Array(snapshot.cells) }),
+      (() => 1) as typeof window.setInterval,
+      (() => {}) as typeof window.clearInterval,
+    );
+    await session.switchEngine("js");
 
     session.setCell(0, 0, true);
     const startingCells = new Uint8Array(engine.cells);
@@ -72,11 +112,19 @@ describe('PlaySession', () => {
     expect(session.stepBack()).toBe(false);
   });
 
-  it('stops playback when clearing', async () => {
+  it("stops playback when clearing", async () => {
     const engine = new FakeEngine();
     let clearedTimer: number | undefined;
-    const session = new PlaySession(config(), async () => engine, () => {}, (() => 7) as typeof window.setInterval, ((timer) => { clearedTimer = timer; }) as typeof window.clearInterval);
-    await session.switchEngine('js');
+    const session = new PlaySession(
+      config(),
+      async () => engine,
+      () => {},
+      (() => 7) as typeof window.setInterval,
+      ((timer) => {
+        clearedTimer = timer;
+      }) as typeof window.clearInterval,
+    );
+    await session.switchEngine("js");
 
     session.play();
     session.clear();
@@ -86,11 +134,17 @@ describe('PlaySession', () => {
     expect(engine.cleared).toBe(true);
   });
 
-  it('reports population and transition stats', async () => {
+  it("reports population and transition stats", async () => {
     const engine = new FakeEngine();
     const stats: Array<{ population: number; births: number; deaths: number; delta: number }> = [];
-    const session = new PlaySession(config(), async () => engine, (snapshot) => stats.push(snapshot), (() => 1) as typeof window.setInterval, (() => {}) as typeof window.clearInterval);
-    await session.switchEngine('js');
+    const session = new PlaySession(
+      config(),
+      async () => engine,
+      (snapshot) => stats.push(snapshot),
+      (() => 1) as typeof window.setInterval,
+      (() => {}) as typeof window.clearInterval,
+    );
+    await session.switchEngine("js");
 
     session.setCell(0, 0, true);
     session.setCell(1, 1, true);
@@ -99,11 +153,17 @@ describe('PlaySession', () => {
     expect(stats.at(-1)).toMatchObject({ population: 1, births: 0, deaths: 1, delta: -1 });
   });
 
-  it('collects a resettable stats history for graphing', async () => {
+  it("collects a resettable stats history for graphing", async () => {
     const engine = new FakeEngine();
     const historyLengths: number[] = [];
-    const session = new PlaySession(config(), async () => engine, (snapshot) => historyLengths.push(snapshot.statsHistory.length), (() => 1) as typeof window.setInterval, (() => {}) as typeof window.clearInterval);
-    await session.switchEngine('js');
+    const session = new PlaySession(
+      config(),
+      async () => engine,
+      (snapshot) => historyLengths.push(snapshot.statsHistory.length),
+      (() => 1) as typeof window.setInterval,
+      (() => {}) as typeof window.clearInterval,
+    );
+    await session.switchEngine("js");
 
     session.setCell(0, 0, true);
     session.setCell(1, 1, true);

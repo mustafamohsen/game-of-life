@@ -1,6 +1,6 @@
-import type { EngineKind, GameConfig } from './Config';
-import type { LifeEngine } from '../engines/LifeEngine';
-import { StatsTimeline, type StatsEvent, type StatsSample } from './StatsTimeline';
+import type { EngineKind, GameConfig } from "./Config";
+import type { LifeEngine } from "../engines/LifeEngine";
+import { StatsTimeline, type StatsEvent, type StatsSample } from "./StatsTimeline";
 
 export type EngineFactory = (kind: EngineKind, config: GameConfig) => Promise<LifeEngine>;
 
@@ -27,7 +27,14 @@ export class PlaySession {
   private previousCells: Uint8Array | undefined;
   private readonly rewindStack: Uint8Array[] = [];
   private readonly maxRewindStates = 500;
-  private lastStats = { population: 0, births: 0, deaths: 0, delta: 0, density: 0, period: undefined as number | undefined };
+  private lastStats = {
+    population: 0,
+    births: 0,
+    deaths: 0,
+    delta: 0,
+    density: 0,
+    period: undefined as number | undefined,
+  };
   private readonly statsTimeline = new StatsTimeline();
   private readonly seenStates = new Map<string, number>();
 
@@ -36,7 +43,9 @@ export class PlaySession {
     private readonly createEngine: EngineFactory,
     private readonly onSnapshot: (snapshot: SessionSnapshot) => void,
     private readonly setIntervalFn: typeof window.setInterval = window.setInterval.bind(window),
-    private readonly clearIntervalFn: typeof window.clearInterval = window.clearInterval.bind(window),
+    private readonly clearIntervalFn: typeof window.clearInterval = window.clearInterval.bind(
+      window,
+    ),
   ) {}
 
   async start(kind: EngineKind = this.config.engine) {
@@ -52,7 +61,7 @@ export class PlaySession {
     this.previousCells = undefined;
     this.rewindStack.length = 0;
     this.seenStates.clear();
-    this.emit(true, 'reset', 'rebuild');
+    this.emit(true, "reset", "rebuild");
     return this.engine.kind;
   }
 
@@ -84,7 +93,7 @@ export class PlaySession {
     this.pushRewindState();
     this.engine.step();
     this.generation++;
-    this.emit(true, 'append', 'step');
+    this.emit(true, "append", "step");
   }
 
   stepBack() {
@@ -94,7 +103,7 @@ export class PlaySession {
     this.restoreCells(previous);
     this.generation = Math.max(0, this.generation - 1);
     this.seenStates.clear();
-    this.emit(true, 'append', 'rewind');
+    this.emit(true, "append", "rewind");
     return true;
   }
 
@@ -109,7 +118,7 @@ export class PlaySession {
     this.previousCells = undefined;
     this.rewindStack.length = 0;
     this.seenStates.clear();
-    this.emit(true, 'reset', 'wipe');
+    this.emit(true, "reset", "wipe");
   }
 
   randomize(density = this.config.randomDensity) {
@@ -118,21 +127,21 @@ export class PlaySession {
     this.previousCells = undefined;
     this.rewindStack.length = 0;
     this.seenStates.clear();
-    this.emit(true, 'reset', 'seed');
+    this.emit(true, "reset", "seed");
   }
 
-  setCell(x: number, y: number, alive: boolean, event: StatsEvent = 'edit') {
+  setCell(x: number, y: number, alive: boolean, event: StatsEvent = "edit") {
     this.engine.setCell(x, y, alive);
-    this.emit(true, 'append', event);
+    this.emit(true, "append", event);
   }
 
   toggleCell(x: number, y: number) {
     this.engine.toggleCell(x, y);
-    this.emit(true, 'append', 'edit');
+    this.emit(true, "append", "edit");
   }
 
   redraw() {
-    this.emit(false, 'none');
+    this.emit(false, "none");
   }
 
   private pushRewindState() {
@@ -149,13 +158,17 @@ export class PlaySession {
     }
   }
 
-  private emit(trackTransition: boolean, timelineMode: 'append' | 'reset' | 'none', event?: StatsEvent) {
+  private emit(
+    trackTransition: boolean,
+    timelineMode: "append" | "reset" | "none",
+    event?: StatsEvent,
+  ) {
     const cells = this.engine.getCells();
     const stats = trackTransition ? this.calculateStats(cells) : this.lastStats;
     const sample = { generation: this.generation, ...stats, event };
     this.lastStats = stats;
-    if (timelineMode === 'reset') this.statsTimeline.reset(sample);
-    else if (timelineMode === 'append') this.statsTimeline.append(sample);
+    if (timelineMode === "reset") this.statsTimeline.reset(sample);
+    else if (timelineMode === "append") this.statsTimeline.append(sample);
 
     this.onSnapshot({
       engine: this.config.engine,
