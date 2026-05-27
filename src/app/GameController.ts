@@ -451,9 +451,8 @@ export class GameController {
           </div>
         </section>
 
-        <section class="notice-card" aria-label="Project notices">
-          <strong>Developed by Mustafa Mohsen</strong>
-          <span>© 2026 Mustafa Mohsen · MIT License</span>
+        <section class="notice-card" aria-label="Developed by Mustafa Mohsen. Copyright 2026 Mustafa Mohsen. MIT License.">
+          <span>Developed by Mustafa Mohsen · MIT License</span>
         </section>
       </aside>
 
