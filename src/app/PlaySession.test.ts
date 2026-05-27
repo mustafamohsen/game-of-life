@@ -12,7 +12,10 @@ class FakeEngine implements LifeEngine {
 
   width() { return 2; }
   height() { return 2; }
-  step() { this.steps++; }
+  step() {
+    this.steps++;
+    this.cells = Uint8Array.from([this.cells[3], this.cells[0], this.cells[1], this.cells[2]]);
+  }
   clear() { this.cleared = true; this.cells.fill(0); }
   randomize(density: number) { this.randomizedWith = density; }
   setCell(x: number, y: number, alive: boolean) { if (x >= 0 && y >= 0 && x < 2 && y < 2) this.cells[y * 2 + x] = alive ? 1 : 0; }
@@ -46,6 +49,27 @@ describe('PlaySession', () => {
 
     expect(engine.steps).toBe(2);
     expect(generations).toEqual([0, 1, 2]);
+  });
+
+  it('steps backward to the previous generation', async () => {
+    const engine = new FakeEngine();
+    const snapshots: Array<{ generation: number; cells: Uint8Array }> = [];
+    const session = new PlaySession(config(), async () => engine, (snapshot) => snapshots.push({ generation: snapshot.generation, cells: new Uint8Array(snapshot.cells) }), (() => 1) as typeof window.setInterval, (() => {}) as typeof window.clearInterval);
+    await session.switchEngine('js');
+
+    session.setCell(0, 0, true);
+    const startingCells = new Uint8Array(engine.cells);
+    session.step();
+
+    expect(session.canStepBack()).toBe(true);
+    expect(snapshots.at(-1)).toMatchObject({ generation: 1 });
+
+    expect(session.stepBack()).toBe(true);
+
+    expect(snapshots.at(-1)?.generation).toBe(0);
+    expect(snapshots.at(-1)?.cells).toEqual(startingCells);
+    expect(session.canStepBack()).toBe(false);
+    expect(session.stepBack()).toBe(false);
   });
 
   it('stops playback when clearing', async () => {

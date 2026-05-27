@@ -25,6 +25,8 @@ export class PlaySession {
   private timer: number | undefined;
   private generation = 0;
   private previousCells: Uint8Array | undefined;
+  private readonly rewindStack: Uint8Array[] = [];
+  private readonly maxRewindStates = 500;
   private lastStats = { population: 0, births: 0, deaths: 0, delta: 0, density: 0, period: undefined as number | undefined };
   private readonly statsTimeline = new StatsTimeline();
   private readonly seenStates = new Map<string, number>();
@@ -48,6 +50,7 @@ export class PlaySession {
     this.config.engine = this.engine.kind;
     this.generation = 0;
     this.previousCells = undefined;
+    this.rewindStack.length = 0;
     this.seenStates.clear();
     this.emit(true, 'reset', 'rebuild');
     return this.engine.kind;
@@ -78,9 +81,25 @@ export class PlaySession {
   }
 
   step() {
+    this.pushRewindState();
     this.engine.step();
     this.generation++;
     this.emit(true, 'append', 'step');
+  }
+
+  stepBack() {
+    const previous = this.rewindStack.pop();
+    if (!previous) return false;
+    this.stop();
+    this.restoreCells(previous);
+    this.generation = Math.max(0, this.generation - 1);
+    this.seenStates.clear();
+    this.emit(true, 'append', 'rewind');
+    return true;
+  }
+
+  canStepBack() {
+    return this.rewindStack.length > 0;
   }
 
   clear() {
@@ -88,6 +107,7 @@ export class PlaySession {
     this.engine.clear();
     this.generation = 0;
     this.previousCells = undefined;
+    this.rewindStack.length = 0;
     this.seenStates.clear();
     this.emit(true, 'reset', 'wipe');
   }
@@ -96,6 +116,7 @@ export class PlaySession {
     this.engine.randomize(density);
     this.generation = 0;
     this.previousCells = undefined;
+    this.rewindStack.length = 0;
     this.seenStates.clear();
     this.emit(true, 'reset', 'seed');
   }
@@ -112,6 +133,20 @@ export class PlaySession {
 
   redraw() {
     this.emit(false, 'none');
+  }
+
+  private pushRewindState() {
+    this.rewindStack.push(new Uint8Array(this.engine.getCells()));
+    if (this.rewindStack.length > this.maxRewindStates) this.rewindStack.shift();
+  }
+
+  private restoreCells(cells: Uint8Array) {
+    this.engine.clear();
+    const width = this.config.width;
+    for (let index = 0; index < cells.length; index++) {
+      if (cells[index] !== 1) continue;
+      this.engine.setCell(index % width, Math.floor(index / width), true);
+    }
   }
 
   private emit(trackTransition: boolean, timelineMode: 'append' | 'reset' | 'none', event?: StatsEvent) {

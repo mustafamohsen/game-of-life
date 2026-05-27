@@ -1,4 +1,4 @@
-export type StatsEvent = 'step' | 'seed' | 'wipe' | 'edit' | 'pattern' | 'rebuild';
+export type StatsEvent = 'step' | 'rewind' | 'seed' | 'wipe' | 'edit' | 'pattern' | 'rebuild';
 
 export type StatsSample = {
   generation: number;

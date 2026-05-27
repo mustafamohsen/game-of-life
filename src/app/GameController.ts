@@ -15,6 +15,8 @@ export class GameController {
   private session: PlaySession;
   private status: HTMLElement;
   private playButton: HTMLButtonElement;
+  private stepBackButton: HTMLButtonElement;
+  private stepForwardButton: HTMLButtonElement;
   private shell: HTMLElement;
   private statsPanel: StatsGraphPanel;
   private latestCells: Uint8Array | undefined;
@@ -27,6 +29,8 @@ export class GameController {
     this.shell = root.querySelector<HTMLElement>('.shell')!;
     this.status = root.querySelector<HTMLElement>('#status')!;
     this.playButton = root.querySelector<HTMLButtonElement>('#play')!;
+    this.stepBackButton = root.querySelector<HTMLButtonElement>('#step-back')!;
+    this.stepForwardButton = root.querySelector<HTMLButtonElement>('#step-forward')!;
     this.renderer = new CanvasRenderer(canvas, this.config);
     this.statsPanel = new StatsGraphPanel(root);
     this.session = new PlaySession(
@@ -38,6 +42,7 @@ export class GameController {
         this.root.dispatchEvent(new CustomEvent('life:stats', { detail: { latest: snapshot, history: this.latestStatsHistory } }));
         this.renderer.draw(snapshot.cells);
         this.status.innerHTML = `<span>${snapshot.engine.toUpperCase()} · Gen ${snapshot.generation} · ${snapshot.width}×${snapshot.height}</span><span>Pop ${snapshot.population}</span><span>Births ${snapshot.births}</span><span>Deaths ${snapshot.deaths}</span><span>Δ ${snapshot.delta >= 0 ? '+' : ''}${snapshot.delta}</span><span>Period ${snapshot.period ?? '—'}</span>`;
+        this.syncStepButtons();
       },
     );
     this.bindControls(canvas);
@@ -64,6 +69,8 @@ export class GameController {
 
   private bindControls(canvas: HTMLCanvasElement) {
     this.playButton.onclick = () => this.togglePlayback();
+    this.stepBackButton.onclick = () => this.stepBackward();
+    this.stepForwardButton.onclick = () => this.stepForward();
     this.root.querySelector<HTMLButtonElement>('#clear')!.onclick = () => this.clearWorld();
     this.root.querySelector<HTMLButtonElement>('#random')!.onclick = () => this.randomizeWorld();
     this.root.querySelector<HTMLButtonElement>('#sidebar-toggle')!.onclick = () => this.toggleSidebar();
@@ -192,6 +199,19 @@ export class GameController {
     this.syncPlayButton();
   }
 
+  private stepForward() {
+    this.session.stop();
+    this.session.step();
+    this.syncPlayButton();
+  }
+
+  private stepBackward() {
+    this.session.stop();
+    this.session.stepBack();
+    this.syncPlayButton();
+    this.syncStepButtons();
+  }
+
   private clearWorld() {
     this.session.clear();
     this.renderer.resetState(this.latestCells);
@@ -252,6 +272,10 @@ export class GameController {
   private syncPlayButton() {
     this.playButton.textContent = this.session.isPlaying() ? 'Pause' : 'Run';
     this.playButton.dataset.state = this.session.isPlaying() ? 'playing' : 'paused';
+  }
+
+  private syncStepButtons() {
+    this.stepBackButton.disabled = !this.session.canStepBack();
   }
 
   private toggleSidebar() {
@@ -405,6 +429,8 @@ export class GameController {
           <div class="card-label">Transport</div>
           <div class="transport-grid">
             <button id="play" class="command primary" type="button" data-state="paused" data-shortcut="Space / K"><span>Run</span></button>
+            <button id="step-back" class="command step-command" type="button" aria-label="Step backward one generation" disabled><span>← Back</span></button>
+            <button id="step-forward" class="command step-command" type="button" aria-label="Step forward one generation"><span>Forward →</span></button>
             <button id="random" class="command" type="button" data-shortcut="R"><span>Randomize</span></button>
             <button id="clear" class="command danger" type="button" data-shortcut="C"><span>Clear</span></button>
           </div>
