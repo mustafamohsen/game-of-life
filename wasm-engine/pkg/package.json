@@ -2,6 +2,7 @@
   "name": "wasm-engine",
   "type": "module",
   "version": "0.1.0",
+  "license": "MIT",
   "files": [
     "wasm_engine_bg.wasm",
     "wasm_engine.js",

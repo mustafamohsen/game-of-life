@@ -48,3 +48,9 @@ That rebuilds the Rust WASM package, then builds the Vite app.
 bun test
 cargo test --manifest-path wasm-engine/Cargo.toml
 ```
+
+## Notices
+
+Developed by Mustafa Mohsen.
+
+Copyright (c) 2026 Mustafa Mohsen. Licensed under the MIT License; see [LICENSE](LICENSE).

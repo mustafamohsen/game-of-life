@@ -450,6 +450,11 @@ export class GameController {
             <button type="button" class="choice" data-engine="js" aria-pressed="false">TS</button>
           </div>
         </section>
+
+        <section class="notice-card" aria-label="Project notices">
+          <strong>Developed by Mustafa Mohsen</strong>
+          <span>© 2026 Mustafa Mohsen · MIT License</span>
+        </section>
       </aside>
 
       <section class="stage" aria-label="Simulation viewport">
