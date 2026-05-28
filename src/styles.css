@@ -1032,7 +1032,7 @@ canvas {
 }
 .brand-card {
   display: grid;
-  grid-template-columns: 2.4rem 1fr;
+  grid-template-columns: 2.4rem 1fr auto;
   align-items: center;
   gap: 0.58rem;
   border: 1px solid rgba(77, 157, 255, 0.2);
@@ -1060,10 +1060,6 @@ canvas {
   line-height: 1.15;
 }
 .notice-card {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.45rem;
   margin: 0 0.12rem;
   padding: 0.08rem 0.1rem 0.2rem;
   color: #7f8a98;
