@@ -443,20 +443,7 @@ export class GameController {
   }
 
   private patternCategory(pattern: LifePattern) {
-    const text = `${pattern.name} ${pattern.description}`.toLowerCase();
-    if (text.includes("gun") || text.includes("unbounded growth")) return "guns";
-    if (text.includes("spaceship") || text.includes("glider")) return "spaceships";
-    if (text.includes("oscillator") || text.includes("period") || text.includes("shuttle"))
-      return "oscillators";
-    if (text.includes("still life")) return "still-lifes";
-    if (
-      text.includes("methuselah") ||
-      text.includes("heptomino") ||
-      text.includes("pentomino") ||
-      text.includes("seed")
-    )
-      return "seeds";
-    return "guns";
+    return pattern.category;
   }
 
   private patternPreview(pattern: LifePattern) {
