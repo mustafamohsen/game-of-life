@@ -489,32 +489,60 @@ input[type="range"]::-moz-range-thumb {
   color: #596472;
   font-size: 0.5rem;
 }
-.rule-card .rule-strip {
-  gap: 0.22rem;
-}
-.rule-card .choice {
-  padding: 0.26rem 0.36rem;
-  background: transparent;
-  border-color: transparent;
-  color: #727d8a;
-}
-.rule-card .choice span {
-  font-size: 0.62rem;
-  font-weight: 500;
-}
-.rule-card .choice small {
-  display: none;
-}
-.rule-card .choice:hover {
+.rule-picker-trigger {
+  width: 100%;
+  display: grid;
+  gap: 0.16rem;
+  border: 1px solid rgba(77, 157, 255, 0.14);
+  border-radius: 14px;
+  padding: 0.55rem 0.65rem;
   background: rgba(77, 157, 255, 0.045);
-  border-color: transparent;
-  color: #a5b0bd;
-}
-.rule-card .choice.is-active {
-  background: rgba(77, 157, 255, 0.08);
   color: #b6c0ca;
-  border: 0;
-  box-shadow: none;
+  text-align: left;
+}
+.rule-picker-trigger span {
+  font-size: 0.72rem;
+  font-weight: 650;
+}
+.rule-picker-trigger small {
+  color: #727d8a;
+  font-size: 0.62rem;
+  line-height: 1.35;
+}
+.rule-picker-trigger:hover {
+  border-color: rgba(77, 157, 255, 0.34);
+  background: rgba(77, 157, 255, 0.08);
+}
+.rule-option-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 0.55rem;
+  max-height: min(520px, calc(100vh - 10rem));
+  overflow: auto;
+}
+.rule-option {
+  display: grid;
+  gap: 0.34rem;
+  min-height: 6rem;
+  border: 1px solid #223044;
+  border-radius: 18px;
+  padding: 0.85rem;
+  background: #0b1018;
+  color: #d7dde5;
+  text-align: left;
+}
+.rule-option span {
+  font-weight: 750;
+  letter-spacing: -0.02em;
+}
+.rule-option small {
+  color: #8793a1;
+  line-height: 1.4;
+}
+.rule-option:hover,
+.rule-option.is-active {
+  border-color: rgba(77, 157, 255, 0.42);
+  background: rgba(77, 157, 255, 0.08);
 }
 .engine-card {
   display: flex;

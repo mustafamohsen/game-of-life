@@ -82,6 +82,12 @@ export class GameController {
 
     const patternDialog = this.root.querySelector<HTMLDialogElement>("#pattern-library")!;
     const patternSearch = this.root.querySelector<HTMLInputElement>("#pattern-search")!;
+    const ruleDialog = this.root.querySelector<HTMLDialogElement>("#rule-library")!;
+    this.root.querySelector<HTMLButtonElement>("#open-rule-library")!.onclick = () => ruleDialog.showModal();
+    this.root.querySelector<HTMLButtonElement>("#close-rule-library")!.onclick = () => ruleDialog.close();
+    ruleDialog.onclick = (event) => {
+      if (event.target === ruleDialog) ruleDialog.close();
+    };
     this.root.querySelector<HTMLButtonElement>("#open-pattern-library")!.onclick = () => {
       patternDialog.showModal();
       patternSearch.focus();
@@ -120,6 +126,9 @@ export class GameController {
         this.setActiveChoice("rule", rule);
         this.config.birthRules = [...preset.birth];
         this.config.survivalRules = [...preset.survival];
+        this.root.querySelector<HTMLElement>("#active-rule-name")!.textContent = preset.label;
+        this.root.querySelector<HTMLElement>("#active-rule-summary")!.textContent = preset.summary;
+        ruleDialog.close();
         await this.rebuildAndRandomize();
       };
     }
@@ -460,10 +469,11 @@ export class GameController {
   }
 
   private template() {
-    const ruleButtons = Object.entries(RULE_PRESETS)
+    const activeRule = RULE_PRESETS.conway;
+    const ruleOptions = Object.entries(RULE_PRESETS)
       .map(([key, preset]) => {
         const active = key === "conway" ? " is-active" : "";
-        return `<button type="button" class="choice${active}" data-rule="${key}" aria-pressed="${key === "conway"}"><span>${preset.label.split(" ")[0]}</span><small>${preset.label.split(" ").slice(1).join(" ")}</small></button>`;
+        return `<button type="button" class="rule-option${active}" data-rule="${key}" aria-pressed="${key === "conway"}"><span>${preset.label}</span><small>${preset.summary}</small></button>`;
       })
       .join("");
     const categories = [
@@ -540,7 +550,10 @@ export class GameController {
 
         <section class="control-card rule-card">
           <div class="card-label">Rule set</div>
-          <div class="choice-strip rule-strip" role="group" aria-label="Rules">${ruleButtons}</div>
+          <button id="open-rule-library" class="rule-picker-trigger" type="button">
+            <span id="active-rule-name">${activeRule.label}</span>
+            <small id="active-rule-summary">${activeRule.summary}</small>
+          </button>
         </section>
 
         <section class="engine-card">
@@ -592,6 +605,19 @@ export class GameController {
           </section>
         </aside>
       </section>
+
+      <dialog id="rule-library" class="pattern-library rule-library" aria-labelledby="rule-library-title">
+        <div class="library-panel">
+          <header class="library-header">
+            <div>
+              <p class="card-label">Rule set</p>
+              <h2 id="rule-library-title">Choose a rule</h2>
+            </div>
+            <button id="close-rule-library" class="sidebar-toggle" type="button" aria-label="Close rule selector">×</button>
+          </header>
+          <div class="rule-option-grid" role="group" aria-label="Rule presets">${ruleOptions}</div>
+        </div>
+      </dialog>
 
       <dialog id="pattern-library" class="pattern-library" aria-labelledby="pattern-library-title">
         <div class="library-panel">
