@@ -7,11 +7,12 @@ const CATEGORIES: PatternCategory[] = [
   "still-lifes",
   "seeds",
   "guns",
+  "mega",
 ];
 
 describe("LIFE_PATTERNS", () => {
   it("keeps the expanded pattern catalog categorized and placeable", () => {
-    expect(LIFE_PATTERNS).toHaveLength(86);
+    expect(LIFE_PATTERNS).toHaveLength(106);
 
     const ids = new Set<string>();
     for (const pattern of LIFE_PATTERNS) {

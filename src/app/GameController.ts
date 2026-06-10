@@ -470,6 +470,7 @@ export class GameController {
       ["still-lifes", "Still lifes"],
       ["seeds", "Seeds"],
       ["guns", "Guns"],
+      ["mega", "Mega"],
     ];
     const categoryButtons = categories
       .map(
