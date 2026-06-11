@@ -391,33 +391,23 @@ export class GameController {
 
   private loadShowcase() {
     this.session.clear();
+    const pattern = (id: string) => LIFE_PATTERNS.find((candidate) => candidate.id === id)!;
+    const at = (x: number, y: number) => [
+      Math.floor(this.config.width * x),
+      Math.floor(this.config.height * y),
+    ] as const;
     const placements: Array<[LifePattern, number, number]> = [
-      [
-        LIFE_PATTERNS[0],
-        Math.floor(this.config.width * 0.12),
-        Math.floor(this.config.height * 0.15),
-      ],
-      [
-        LIFE_PATTERNS[1],
-        Math.floor(this.config.width * 0.28),
-        Math.floor(this.config.height * 0.2),
-      ],
-      [
-        LIFE_PATTERNS[2],
-        Math.floor(this.config.width * 0.55),
-        Math.floor(this.config.height * 0.2),
-      ],
-      [
-        LIFE_PATTERNS[4],
-        Math.floor(this.config.width * 0.18),
-        Math.floor(this.config.height * 0.65),
-      ],
-      [LIFE_PATTERNS[5], Math.floor(this.config.width * 0.4), Math.floor(this.config.height * 0.7)],
-      [
-        LIFE_PATTERNS[6],
-        Math.floor(this.config.width * 0.65),
-        Math.floor(this.config.height * 0.65),
-      ],
+      [pattern("gosper"), ...at(0.24, 0.18)],
+      [pattern("simkin"), ...at(0.72, 0.74)],
+      [pattern("pulsar"), ...at(0.5, 0.5)],
+      [pattern("pentadecathlon"), ...at(0.48, 0.18)],
+      [pattern("snacker"), ...at(0.72, 0.26)],
+      [pattern("loafer"), ...at(0.12, 0.78)],
+      [pattern("copperhead"), ...at(0.18, 0.48)],
+      [pattern("rPentomino"), ...at(0.38, 0.72)],
+      [pattern("acorn"), ...at(0.58, 0.82)],
+      [pattern("eater1"), ...at(0.86, 0.46)],
+      [pattern("beehive"), ...at(0.1, 0.25)],
     ];
     for (const [pattern, x, y] of placements) this.placePattern(pattern, x, y);
     this.syncPlayButton();
