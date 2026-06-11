@@ -781,10 +781,12 @@ canvas {
   .shell {
     padding: 0.55rem;
   }
-  .control-card,
   .stage {
     min-height: 22rem;
     height: 62dvh;
+    border-radius: 16px;
+  }
+  .control-card {
     border-radius: 16px;
   }
   .stage-chrome {
