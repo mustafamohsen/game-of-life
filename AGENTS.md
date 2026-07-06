@@ -11,7 +11,7 @@
   - `cargo test --manifest-path wasm-engine/Cargo.toml`
 - The Rust WebAssembly package is built with `wasm-pack build wasm-engine --target web --out-dir pkg`.
 
-<-- Begin DOX -->
+<!-- Begin DOX -->
 
 # DOX framework
 
@@ -106,5 +106,5 @@ Root-owned paths without child docs:
 - `dist/` — generated production build output; do not edit manually.
 - `node_modules/` — installed dependencies; do not edit.
 - Root config/docs such as `package.json`, `bun.lock`, `vite.config.ts`, `tsconfig.json`, `README.md`, `netlify.toml`, `index.html`, `LICENSE`, and `skills-lock.json`.
-<-- end DOX -->
+<!-- end DOX -->
 
