@@ -43,6 +43,32 @@ bun run build
 
 That rebuilds the Rust WASM package, then builds the Vite app.
 
+## Deploying to Cloudflare Workers
+
+This repository includes `wrangler.toml` and a GitHub Actions workflow for Cloudflare Workers Static Assets.
+
+One-time Cloudflare setup:
+
+1. Create a Cloudflare API token with Workers deployment permissions.
+2. Find your Cloudflare account ID in the Cloudflare dashboard.
+3. Add these GitHub repository secrets:
+   - `CLOUDFLARE_API_TOKEN`
+   - `CLOUDFLARE_ACCOUNT_ID`
+
+Deploy from your machine:
+
+```bash
+bun install
+bun run deploy:cloudflare
+```
+
+Deploy from CI:
+
+- Push to `main`, or run the `Deploy to Cloudflare Workers` workflow manually from GitHub Actions.
+- The workflow installs Bun and Rust, builds the WASM/Vite app, then runs `wrangler deploy`.
+
+The Worker name is configured in `wrangler.toml` as `game-of-life`. Change that `name` before deploying if you want a different `*.workers.dev` subdomain.
+
 ## Tests
 
 ```bash

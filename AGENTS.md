@@ -101,10 +101,10 @@ When the user requests a durable behavior change, record it here or in the relev
 
 Root-owned paths without child docs:
 
-- `.github/` — repository automation workflows.
+- `.github/` — repository automation workflows, including Netlify and Cloudflare Workers deployment triggers.
 - `assets/` — shared static SVG assets used by the app.
 - `dist/` — generated production build output; do not edit manually.
 - `node_modules/` — installed dependencies; do not edit.
-- Root config/docs such as `package.json`, `bun.lock`, `vite.config.ts`, `tsconfig.json`, `README.md`, `netlify.toml`, `index.html`, `LICENSE`, and `skills-lock.json`.
+- Root config/docs such as `package.json`, `bun.lock`, `vite.config.ts`, `tsconfig.json`, `README.md`, `netlify.toml`, `wrangler.toml`, `index.html`, `LICENSE`, and `skills-lock.json`.
 <!-- end DOX -->
 

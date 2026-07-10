@@ -8,6 +8,7 @@
     "dev": "vite",
     "build:wasm": "wasm-pack build wasm-engine --target web --out-dir pkg",
     "build": "bun run build:wasm && tsc && vite build",
+    "deploy:cloudflare": "bun run build && wrangler deploy",
     "test": "vitest run",
     "preview": "vite preview"
   },
@@ -18,7 +19,8 @@
   },
   "devDependencies": {
     "vitest": "latest",
-    "wasm-pack": "^0.15.0"
+    "wasm-pack": "^0.15.0",
+    "wrangler": "^4.110.0"
   },
   "packageManager": "bun@latest"
 }
