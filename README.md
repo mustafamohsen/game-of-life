@@ -50,10 +50,9 @@ This repository includes `wrangler.toml` and a GitHub Actions workflow for Cloud
 One-time Cloudflare setup:
 
 1. Create a Cloudflare API token with Workers deployment permissions.
-2. Find your Cloudflare account ID in the Cloudflare dashboard.
-3. Add these GitHub repository secrets:
-   - `CLOUDFLARE_API_TOKEN`
-   - `CLOUDFLARE_ACCOUNT_ID`
+2. Add it as the GitHub repository secret `CLOUDFLARE_API_TOKEN`.
+
+Wrangler determines the account from the API token, so no account ID secret is required.
 
 Deploy from your machine:
 
