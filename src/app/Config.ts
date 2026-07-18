@@ -19,6 +19,13 @@ export type GameConfig = {
   };
 };
 
+type RulePreset = {
+  label: string;
+  summary: string;
+  birth: readonly number[];
+  survival: readonly number[];
+};
+
 export const RULE_PRESETS = {
   conway: {
     label: "Conway B3/S23",
@@ -74,7 +81,7 @@ export const RULE_PRESETS = {
     birth: [3],
     survival: [4, 5, 6, 7, 8],
   },
-} as const;
+} as const satisfies Record<string, RulePreset>;
 
 export const DEFAULT_CONFIG: GameConfig = {
   width: 100,
@@ -96,5 +103,9 @@ export const DEFAULT_CONFIG: GameConfig = {
 };
 
 export function ruleMask(rules: number[]): number {
-  return rules.reduce((mask, n) => (n >= 0 && n <= 8 ? mask | (1 << n) : mask), 0);
+  return rules.reduce(
+    (mask, neighborCount) =>
+      neighborCount >= 0 && neighborCount <= 8 ? mask | (1 << neighborCount) : mask,
+    0,
+  );
 }

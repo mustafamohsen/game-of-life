@@ -171,4 +171,85 @@ describe("PlaySession", () => {
 
     expect(historyLengths).toEqual([1, 2, 3, 1]);
   });
+
+  it("stops the timer before awaiting an engine switch and mutates the shared config", async () => {
+    const sharedConfig = config();
+    const engine = new FakeEngine();
+    const order: string[] = [];
+    let resolveEngine: ((engine: LifeEngine) => void) | undefined;
+    const pendingEngine = new Promise<LifeEngine>((resolve) => {
+      resolveEngine = resolve;
+    });
+    const session = new PlaySession(
+      sharedConfig,
+      async () => {
+        order.push("factory");
+        return pendingEngine;
+      },
+      () => order.push("snapshot"),
+      (() => 7) as typeof window.setInterval,
+      (() => order.push("clear-timer")) as typeof window.clearInterval,
+    );
+    session.play();
+
+    const switching = session.switchEngine("wasm");
+    expect(order).toEqual(["clear-timer", "factory"]);
+    expect(sharedConfig.engine).toBe("js");
+
+    resolveEngine?.(engine);
+    await switching;
+
+    expect(sharedConfig.engine).toBe("js");
+    expect(order).toEqual(["clear-timer", "factory", "snapshot"]);
+  });
+
+  it("preserves snapshot identities, event order, period detection, and callback timing", async () => {
+    const engine = new FakeEngine();
+    const events: Array<string | undefined> = [];
+    const histories: ReadonlyArray<unknown>[] = [];
+    let mutateDuringEdit = false;
+    let latestStats: { births: number; deaths: number; period: number | undefined } | undefined;
+    const session = new PlaySession(
+      config(),
+      async () => engine,
+      (snapshot) => {
+        events.push(snapshot.event);
+        histories.push(snapshot.statsHistory);
+        latestStats = snapshot;
+        expect(snapshot.cells).toBe(engine.cells);
+        if (mutateDuringEdit) engine.cells[1] = 1;
+      },
+      (() => 1) as typeof window.setInterval,
+      (() => {}) as typeof window.clearInterval,
+    );
+    await session.switchEngine("js");
+
+    mutateDuringEdit = true;
+    session.setCell(0, 0, true);
+    mutateDuringEdit = false;
+    session.setCell(0, 0, false);
+
+    expect(events).toEqual(["rebuild", "edit", "edit"]);
+    expect(histories[0]).toBe(histories[1]);
+    expect(histories[1]).toBe(histories[2]);
+    expect(latestStats).toMatchObject({ births: 0, deaths: 1, period: undefined });
+  });
+
+  it("caps rewind history at 500 states", async () => {
+    const engine = new FakeEngine();
+    const session = new PlaySession(
+      config(),
+      async () => engine,
+      () => {},
+      (() => 1) as typeof window.setInterval,
+      (() => {}) as typeof window.clearInterval,
+    );
+    await session.switchEngine("js");
+
+    for (let generation = 0; generation < 501; generation++) session.step();
+
+    let rewinds = 0;
+    while (session.stepBack()) rewinds++;
+    expect(rewinds).toBe(500);
+  });
 });

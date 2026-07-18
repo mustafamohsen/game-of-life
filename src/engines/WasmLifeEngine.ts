@@ -14,7 +14,7 @@ export async function initWasm(): Promise<void> {
 
 export class WasmLifeEngine implements LifeEngine {
   readonly kind = "wasm" as const;
-  private universe: Universe;
+  private readonly universe: Universe;
 
   constructor(config: GameConfig) {
     if (!wasmMemory) throw new Error("WASM not initialized");
@@ -27,25 +27,31 @@ export class WasmLifeEngine implements LifeEngine {
     );
   }
 
-  width() {
+  width(): number {
     return this.universe.width();
   }
-  height() {
+
+  height(): number {
     return this.universe.height();
   }
-  step() {
+
+  step(): void {
     this.universe.step();
   }
-  clear() {
+
+  clear(): void {
     this.universe.clear();
   }
-  randomize(density: number) {
+
+  randomize(density: number): void {
     this.universe.randomize(density);
   }
-  setCell(x: number, y: number, alive: boolean) {
+
+  setCell(x: number, y: number, alive: boolean): void {
     this.universe.set_cell(x, y, alive);
   }
-  toggleCell(x: number, y: number) {
+
+  toggleCell(x: number, y: number): void {
     this.universe.toggle_cell(x, y);
   }
 

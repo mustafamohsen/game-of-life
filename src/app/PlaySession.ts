@@ -4,6 +4,9 @@ import { StatsTimeline, type StatsEvent, type StatsSample } from "./StatsTimelin
 
 export type EngineFactory = (kind: EngineKind, config: GameConfig) => Promise<LifeEngine>;
 
+type TransitionStats = Omit<StatsSample, "generation" | "event">;
+type TimelineMode = "append" | "reset" | "none";
+
 type SessionSnapshot = {
   engine: EngineKind;
   generation: number;
@@ -27,13 +30,13 @@ export class PlaySession {
   private previousCells: Uint8Array | undefined;
   private readonly rewindStack: Uint8Array[] = [];
   private readonly maxRewindStates = 500;
-  private lastStats = {
+  private lastStats: TransitionStats = {
     population: 0,
     births: 0,
     deaths: 0,
     delta: 0,
     density: 0,
-    period: undefined as number | undefined,
+    period: undefined,
   };
   private readonly statsTimeline = new StatsTimeline();
   private readonly seenStates = new Map<string, number>();
@@ -48,7 +51,7 @@ export class PlaySession {
     ),
   ) {}
 
-  async start(kind: EngineKind = this.config.engine) {
+  async start(kind: EngineKind = this.config.engine): Promise<void> {
     await this.switchEngine(kind);
     this.randomize();
   }
@@ -65,38 +68,38 @@ export class PlaySession {
     return this.engine.kind;
   }
 
-  async rebuild() {
+  async rebuild(): Promise<void> {
     await this.switchEngine(this.config.engine);
   }
 
-  play() {
+  play(): void {
     if (this.timer) return;
     this.timer = this.setIntervalFn(() => this.step(), this.config.tickRateMs);
   }
 
-  stop() {
+  stop(): void {
     if (this.timer) this.clearIntervalFn(this.timer);
     this.timer = undefined;
   }
 
-  isPlaying() {
+  isPlaying(): boolean {
     return this.timer !== undefined;
   }
 
-  restartTimer() {
+  restartTimer(): void {
     if (!this.isPlaying()) return;
     this.stop();
     this.play();
   }
 
-  step() {
+  step(): void {
     this.pushRewindState();
     this.engine.step();
     this.generation++;
     this.emit(true, "append", "step");
   }
 
-  stepBack() {
+  stepBack(): boolean {
     const previous = this.rewindStack.pop();
     if (!previous) return false;
     this.stop();
@@ -107,11 +110,11 @@ export class PlaySession {
     return true;
   }
 
-  canStepBack() {
+  canStepBack(): boolean {
     return this.rewindStack.length > 0;
   }
 
-  clear() {
+  clear(): void {
     this.stop();
     this.engine.clear();
     this.generation = 0;
@@ -121,7 +124,7 @@ export class PlaySession {
     this.emit(true, "reset", "wipe");
   }
 
-  randomize(density = this.config.randomDensity) {
+  randomize(density = this.config.randomDensity): void {
     this.engine.randomize(density);
     this.generation = 0;
     this.previousCells = undefined;
@@ -130,26 +133,26 @@ export class PlaySession {
     this.emit(true, "reset", "seed");
   }
 
-  setCell(x: number, y: number, alive: boolean, event: StatsEvent = "edit") {
+  setCell(x: number, y: number, alive: boolean, event: StatsEvent = "edit"): void {
     this.engine.setCell(x, y, alive);
     this.emit(true, "append", event);
   }
 
-  toggleCell(x: number, y: number) {
+  toggleCell(x: number, y: number): void {
     this.engine.toggleCell(x, y);
     this.emit(true, "append", "edit");
   }
 
-  redraw() {
+  redraw(): void {
     this.emit(false, "none");
   }
 
-  private pushRewindState() {
+  private pushRewindState(): void {
     this.rewindStack.push(new Uint8Array(this.engine.getCells()));
     if (this.rewindStack.length > this.maxRewindStates) this.rewindStack.shift();
   }
 
-  private restoreCells(cells: Uint8Array) {
+  private restoreCells(cells: Uint8Array): void {
     this.engine.clear();
     const width = this.config.width;
     for (let index = 0; index < cells.length; index++) {
@@ -160,9 +163,9 @@ export class PlaySession {
 
   private emit(
     trackTransition: boolean,
-    timelineMode: "append" | "reset" | "none",
+    timelineMode: TimelineMode,
     event?: StatsEvent,
-  ) {
+  ): void {
     const cells = this.engine.getCells();
     const stats = trackTransition ? this.calculateStats(cells) : this.lastStats;
     const sample = { generation: this.generation, ...stats, event };
@@ -183,7 +186,7 @@ export class PlaySession {
     if (trackTransition) this.previousCells = new Uint8Array(cells);
   }
 
-  private calculateStats(cells: Uint8Array) {
+  private calculateStats(cells: Uint8Array): TransitionStats {
     let population = 0;
     let births = 0;
     let deaths = 0;
@@ -201,14 +204,14 @@ export class PlaySession {
     return { population, births, deaths, delta: births - deaths, density, period };
   }
 
-  private detectPeriod(cells: Uint8Array) {
+  private detectPeriod(cells: Uint8Array): number | undefined {
     const hash = this.hashCells(cells);
     const previousGeneration = this.seenStates.get(hash);
     this.seenStates.set(hash, this.generation);
     return previousGeneration === undefined ? undefined : this.generation - previousGeneration;
   }
 
-  private hashCells(cells: Uint8Array) {
+  private hashCells(cells: Uint8Array): string {
     let hash = 2166136261;
     for (let i = 0; i < cells.length; i++) {
       hash ^= cells[i];
