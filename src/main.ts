@@ -4,4 +4,5 @@ import { GameController } from "./app/GameController";
 const root = document.querySelector<HTMLElement>("#app");
 if (!root) throw new Error("Missing #app root");
 
-new GameController(root).start();
+const game = new GameController(root);
+void game.start();

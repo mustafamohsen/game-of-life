@@ -1,21 +1,38 @@
+import { buildEventMarkers, buildLinePath } from "./StatsChart";
+import type { SessionSnapshot } from "./PlaySession";
 import type { StatsSample } from "./StatsTimeline";
 
+const CHART_WIDTH = 320;
+const POPULATION_CHART_HEIGHT = 96;
+const FLOW_CHART_HEIGHT = 72;
+const DENSITY_CHART_HEIGHT = 56;
+
+export type LifeStatsEventDetail = {
+  latest: SessionSnapshot;
+  history: readonly StatsSample[];
+};
+
+declare global {
+  interface HTMLElementEventMap {
+    "life:stats": CustomEvent<LifeStatsEventDetail>;
+  }
+}
+
 export class StatsGraphPanel {
-  private history: readonly StatsSample[] = [];
-  private panel: HTMLElement;
-  private populationPath: SVGPathElement;
-  private birthsPath: SVGPathElement;
-  private deathsPath: SVGPathElement;
-  private populationValue: HTMLElement;
-  private birthsValue: HTMLElement;
-  private deathsValue: HTMLElement;
-  private deltaValue: HTMLElement;
-  private densityValue: HTMLElement;
-  private periodValue: HTMLElement;
-  private densityPath: SVGPathElement;
-  private eventLayer: SVGGElement;
-  private toggle: HTMLButtonElement;
-  private samplesValue: HTMLElement;
+  private readonly panel: HTMLElement;
+  private readonly populationPath: SVGPathElement;
+  private readonly birthsPath: SVGPathElement;
+  private readonly deathsPath: SVGPathElement;
+  private readonly populationValue: HTMLElement;
+  private readonly birthsValue: HTMLElement;
+  private readonly deathsValue: HTMLElement;
+  private readonly deltaValue: HTMLElement;
+  private readonly densityValue: HTMLElement;
+  private readonly periodValue: HTMLElement;
+  private readonly densityPath: SVGPathElement;
+  private readonly eventLayer: SVGGElement;
+  private readonly toggle: HTMLButtonElement;
+  private readonly samplesValue: HTMLElement;
 
   constructor(private readonly root: HTMLElement) {
     this.panel = root.querySelector<HTMLElement>("#stats-panel")!;
@@ -33,19 +50,15 @@ export class StatsGraphPanel {
     this.toggle = root.querySelector<HTMLButtonElement>("#stats-toggle")!;
     this.samplesValue = root.querySelector<HTMLElement>("#stats-samples")!;
     this.toggle.onclick = () => this.togglePanel();
-    root.addEventListener("life:stats", (event) => {
-      const detail = (event as CustomEvent<{ history: readonly StatsSample[] }>).detail;
-      this.render(detail.history);
-    });
+    root.addEventListener("life:stats", (event) => this.render(event.detail.history));
   }
 
-  togglePanel() {
+  togglePanel(): void {
     const hidden = this.panel.toggleAttribute("hidden");
     this.toggle.setAttribute("aria-expanded", String(!hidden));
   }
 
-  private render(history: readonly StatsSample[]) {
-    this.history = history;
+  private render(history: readonly StatsSample[]): void {
     const latest = history.at(-1);
     if (!latest) return;
     this.populationValue.textContent = String(latest.population);
@@ -57,64 +70,44 @@ export class StatsGraphPanel {
     this.samplesValue.textContent = `${history.length} sample${history.length === 1 ? "" : "s"}`;
     this.populationPath.setAttribute(
       "d",
-      this.linePath(
+      buildLinePath(
         history.map((sample) => sample.population),
-        320,
-        96,
+        CHART_WIDTH,
+        POPULATION_CHART_HEIGHT,
       ),
     );
     const maxFlow = Math.max(1, ...history.flatMap((sample) => [sample.births, sample.deaths]));
     this.birthsPath.setAttribute(
       "d",
-      this.linePath(
+      buildLinePath(
         history.map((sample) => sample.births),
-        320,
-        72,
+        CHART_WIDTH,
+        FLOW_CHART_HEIGHT,
         maxFlow,
       ),
     );
     this.deathsPath.setAttribute(
       "d",
-      this.linePath(
+      buildLinePath(
         history.map((sample) => sample.deaths),
-        320,
-        72,
+        CHART_WIDTH,
+        FLOW_CHART_HEIGHT,
         maxFlow,
       ),
     );
     this.densityPath.setAttribute(
       "d",
-      this.linePath(
+      buildLinePath(
         history.map((sample) => sample.density),
-        320,
-        56,
+        CHART_WIDTH,
+        DENSITY_CHART_HEIGHT,
         1,
       ),
     );
-    this.eventLayer.innerHTML = this.eventMarkers(history, 320, 96);
-  }
-
-  private eventMarkers(history: readonly StatsSample[], width: number, height: number) {
-    if (history.length <= 1) return "";
-    return history
-      .flatMap((sample, index) => {
-        if (!sample.event || sample.event === "step") return [];
-        const x = (index / (history.length - 1)) * width;
-        return `<line x1="${x.toFixed(2)}" x2="${x.toFixed(2)}" y1="0" y2="${height}" />`;
-      })
-      .join("");
-  }
-
-  private linePath(values: readonly number[], width: number, height: number, forcedMax?: number) {
-    if (values.length === 0) return "";
-    if (values.length === 1) return `M 0 ${height} L ${width} ${height}`;
-    const max = forcedMax ?? Math.max(1, ...values);
-    return values
-      .map((value, index) => {
-        const x = (index / (values.length - 1)) * width;
-        const y = height - (value / max) * height;
-        return `${index === 0 ? "M" : "L"} ${x.toFixed(2)} ${y.toFixed(2)}`;
-      })
-      .join(" ");
+    this.eventLayer.innerHTML = buildEventMarkers(
+      history,
+      CHART_WIDTH,
+      POPULATION_CHART_HEIGHT,
+    );
   }
 }

@@ -1,7 +1,8 @@
 import type { GameConfig } from "../app/Config";
+import { centerPatternCells, type CellCoordinate } from "../app/PatternGeometry";
 
 export class CanvasRenderer {
-  private ctx: CanvasRenderingContext2D;
+  private readonly ctx: CanvasRenderingContext2D;
   private previousCells: Uint8Array | undefined;
   private lastCells: Uint8Array | undefined;
 
@@ -15,7 +16,7 @@ export class CanvasRenderer {
     this.resize(config);
   }
 
-  resize(config: GameConfig) {
+  resize(config: GameConfig): void {
     this.config = config;
     this.canvas.width = config.width * config.cellSize;
     this.canvas.height = config.height * config.cellSize;
@@ -34,26 +35,24 @@ export class CanvasRenderer {
     ];
   }
 
-  resetState(cells: Uint8Array | undefined) {
+  resetState(cells: Uint8Array | undefined): void {
     this.previousCells = undefined;
     this.lastCells = cells ? new Uint8Array(cells) : undefined;
   }
 
-  drawPatternPreview(cells: readonly [number, number][], centerX: number, centerY: number) {
+  drawPatternPreview(
+    cells: readonly CellCoordinate[],
+    centerX: number,
+    centerY: number,
+  ): void {
     const { width, height, cellSize } = this.config;
-    const maxX = Math.max(...cells.map(([x]) => x));
-    const maxY = Math.max(...cells.map(([, y]) => y));
-    const originX = centerX - Math.floor((maxX + 1) / 2);
-    const originY = centerY - Math.floor((maxY + 1) / 2);
     const inset = cellSize >= 8 ? 1 : 0;
     this.ctx.save();
     this.ctx.globalAlpha = 0.58;
     this.ctx.fillStyle = "#4d9dff";
     this.ctx.strokeStyle = "rgba(215, 221, 229, 0.72)";
     this.ctx.lineWidth = 1;
-    for (const [x, y] of cells) {
-      const targetX = originX + x;
-      const targetY = originY + y;
+    for (const [targetX, targetY] of centerPatternCells(cells, centerX, centerY)) {
       if (targetX < 0 || targetY < 0 || targetX >= width || targetY >= height) continue;
       const px = targetX * cellSize + inset;
       const py = targetY * cellSize + inset;
@@ -64,11 +63,11 @@ export class CanvasRenderer {
     this.ctx.restore();
   }
 
-  draw(cells: Uint8Array, rememberState = true) {
-    const { width, height, cellSize, colors, showGrid } = this.config;
+  draw(cells: Uint8Array, rememberState = true): void {
+    const { width, height, cellSize, colors, showGrid, colorizeStates } = this.config;
     this.drawFieldBackground(colors.background);
 
-    if (this.config.colorizeStates)
+    if (colorizeStates)
       this.drawStateCells(cells, width, height, cellSize, colors.alive);
     else this.drawMonoCells(cells, width, height, cellSize, colors.alive);
 
@@ -86,7 +85,7 @@ export class CanvasRenderer {
     height: number,
     cellSize: number,
     aliveColor: string,
-  ) {
+  ): void {
     const cellPath = this.cellsPath(cells, width, height, cellSize, (alive) => alive);
     this.drawGlow(cellPath, "rgba(77, 157, 255, 0.26)", "rgba(77, 157, 255, 0.34)", cellSize);
     this.ctx.fillStyle = aliveColor;
@@ -99,7 +98,7 @@ export class CanvasRenderer {
     height: number,
     cellSize: number,
     aliveColor: string,
-  ) {
+  ): void {
     const previous = this.previousCells;
     const born = previous
       ? this.cellsPath(cells, width, height, cellSize, (alive, wasAlive) => alive && !wasAlive)
@@ -130,7 +129,7 @@ export class CanvasRenderer {
     height: number,
     cellSize: number,
     include: (alive: boolean, wasAlive: boolean) => boolean,
-  ) {
+  ): Path2D {
     const inset = cellSize >= 8 ? 1 : 0;
     const path = new Path2D();
     for (let y = 0; y < height; y++) {
@@ -148,7 +147,12 @@ export class CanvasRenderer {
     return path;
   }
 
-  private drawGlow(path: Path2D, shadowColor: string, fillColor: string, cellSize: number) {
+  private drawGlow(
+    path: Path2D,
+    shadowColor: string,
+    fillColor: string,
+    cellSize: number,
+  ): void {
     this.ctx.save();
     this.ctx.shadowColor = shadowColor;
     this.ctx.shadowBlur = Math.max(4, cellSize * 0.9);
@@ -157,12 +161,12 @@ export class CanvasRenderer {
     this.ctx.restore();
   }
 
-  private drawFieldBackground(background: string) {
+  private drawFieldBackground(background: string): void {
     this.ctx.fillStyle = background;
     this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
   }
 
-  private drawGrid(width: number, height: number, cellSize: number, grid: string) {
+  private drawGrid(width: number, height: number, cellSize: number, grid: string): void {
     this.ctx.save();
     this.ctx.strokeStyle = grid;
     this.ctx.lineWidth = 1;
@@ -191,7 +195,7 @@ export class CanvasRenderer {
     this.ctx.restore();
   }
 
-  private drawFrameShadow() {
+  private drawFrameShadow(): void {
     const edge = Math.max(12, Math.min(this.canvas.width, this.canvas.height) * 0.035);
     this.ctx.fillStyle = "rgba(0, 0, 0, 0.18)";
     this.ctx.fillRect(0, 0, this.canvas.width, edge);

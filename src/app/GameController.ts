@@ -3,14 +3,14 @@ import type { LifeEngine } from "../engines/LifeEngine";
 import { JsLifeEngine } from "../engines/JsLifeEngine";
 import { initWasm, WasmLifeEngine } from "../engines/WasmLifeEngine";
 import { CanvasRenderer } from "../rendering/CanvasRenderer";
+import { centerPatternCells, patternBounds } from "./PatternGeometry";
 import { LIFE_PATTERNS, type LifePattern } from "./Patterns";
 import { PlaySession } from "./PlaySession";
-import type { StatsSample } from "./StatsTimeline";
-import { StatsGraphPanel } from "./StatsGraphPanel";
+import { StatsGraphPanel, type LifeStatsEventDetail } from "./StatsGraphPanel";
 import emblemUrl from "../../assets/cell-cluster-emblem.svg?url";
 
 export class GameController {
-  private config: GameConfig = structuredClone(DEFAULT_CONFIG);
+  private readonly config: GameConfig = structuredClone(DEFAULT_CONFIG);
   private renderer: CanvasRenderer;
   private session: PlaySession;
   private status: HTMLElement;
@@ -20,7 +20,6 @@ export class GameController {
   private shell: HTMLElement;
   private statsPanel: StatsGraphPanel;
   private latestCells: Uint8Array | undefined;
-  private latestStatsHistory: readonly StatsSample[] = [];
   private pendingPattern: LifePattern | undefined;
 
   constructor(private root: HTMLElement) {
@@ -38,10 +37,9 @@ export class GameController {
       (kind, config) => this.createEngine(kind, config),
       (snapshot) => {
         this.latestCells = snapshot.cells;
-        this.latestStatsHistory = snapshot.statsHistory;
         this.root.dispatchEvent(
-          new CustomEvent("life:stats", {
-            detail: { latest: snapshot, history: this.latestStatsHistory },
+          new CustomEvent<LifeStatsEventDetail>("life:stats", {
+            detail: { latest: snapshot, history: snapshot.statsHistory },
           }),
         );
         this.renderer.draw(snapshot.cells);
@@ -53,7 +51,7 @@ export class GameController {
     this.bindAutoFit();
   }
 
-  async start() {
+  async start(): Promise<void> {
     await this.session.start(this.config.engine);
   }
 
@@ -414,13 +412,7 @@ export class GameController {
   }
 
   private placePattern(pattern: LifePattern, centerX: number, centerY: number) {
-    const maxX = Math.max(...pattern.cells.map(([x]) => x));
-    const maxY = Math.max(...pattern.cells.map(([, y]) => y));
-    const originX = centerX - Math.floor((maxX + 1) / 2);
-    const originY = centerY - Math.floor((maxY + 1) / 2);
-    for (const [x, y] of pattern.cells) {
-      const targetX = originX + x;
-      const targetY = originY + y;
+    for (const [targetX, targetY] of centerPatternCells(pattern.cells, centerX, centerY)) {
       if (
         targetX >= 0 &&
         targetY >= 0 &&
@@ -437,8 +429,7 @@ export class GameController {
   }
 
   private patternPreview(pattern: LifePattern) {
-    const maxX = Math.max(...pattern.cells.map(([x]) => x));
-    const maxY = Math.max(...pattern.cells.map(([, y]) => y));
+    const { maxX, maxY } = patternBounds(pattern.cells);
     const cells = pattern.cells
       .map(([x, y]) => `<rect x="${x}" y="${y}" width="1" height="1" />`)
       .join("");

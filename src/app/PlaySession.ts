@@ -7,7 +7,7 @@ export type EngineFactory = (kind: EngineKind, config: GameConfig) => Promise<Li
 type TransitionStats = Omit<StatsSample, "generation" | "event">;
 type TimelineMode = "append" | "reset" | "none";
 
-type SessionSnapshot = {
+export type SessionSnapshot = {
   engine: EngineKind;
   generation: number;
   width: number;
