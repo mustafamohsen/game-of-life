@@ -8,14 +8,15 @@
 ## Ownership
 
 - `app/` owns controller/UI orchestration, configuration, pattern data, play sessions, and statistics.
-- `engines/` owns the shared engine interface plus TypeScript and WebAssembly-backed engine adapters.
+- `engines/` owns the simulation interface and WebAssembly-backed engine adapter.
 - `rendering/` owns canvas drawing.
 - `styles.css` owns the application visual system and responsive layout.
 
 ## Local Contracts
 
 - Keep rule presets centralized in `app/Config.ts` and consume them from UI and engines rather than duplicating rule data.
-- Keep engine behavior behind `engines/LifeEngine.ts` so TypeScript and WASM engines remain swappable.
+- Run simulations exclusively with the Rust WASM engine behind `engines/LifeEngine.ts`; propagate initialization failures rather than falling back.
+- Keep engine selection and engine labels out of the UI; WASM runs implicitly.
 - UI code should remain keyboard/accessibility aware when adding controls or dialogs.
 
 ## Work Guidance

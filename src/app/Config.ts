@@ -1,5 +1,3 @@
-export type EngineKind = "wasm" | "js";
-
 export type GameConfig = {
   width: number;
   height: number;
@@ -9,7 +7,6 @@ export type GameConfig = {
   randomDensity: number;
   survivalRules: number[];
   birthRules: number[];
-  engine: EngineKind;
   showGrid: boolean;
   colorizeStates: boolean;
   colors: {
@@ -92,7 +89,6 @@ export const DEFAULT_CONFIG: GameConfig = {
   randomDensity: 0.25,
   birthRules: [...RULE_PRESETS.conway.birth],
   survivalRules: [...RULE_PRESETS.conway.survival],
-  engine: "wasm",
   showGrid: true,
   colorizeStates: false,
   colors: {

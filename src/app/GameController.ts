@@ -1,6 +1,5 @@
-import { DEFAULT_CONFIG, RULE_PRESETS, type EngineKind, type GameConfig } from "./Config";
+import { DEFAULT_CONFIG, RULE_PRESETS, type GameConfig } from "./Config";
 import type { LifeEngine } from "../engines/LifeEngine";
-import { JsLifeEngine } from "../engines/JsLifeEngine";
 import { initWasm, WasmLifeEngine } from "../engines/WasmLifeEngine";
 import { CanvasRenderer } from "../rendering/CanvasRenderer";
 import { centerPatternCells, patternBounds } from "./PatternGeometry";
@@ -34,7 +33,7 @@ export class GameController {
     this.statsPanel = new StatsGraphPanel(root);
     this.session = new PlaySession(
       this.config,
-      (kind, config) => this.createEngine(kind, config),
+      (config) => this.createEngine(config),
       (snapshot) => {
         this.latestCells = snapshot.cells;
         this.root.dispatchEvent(
@@ -43,7 +42,7 @@ export class GameController {
           }),
         );
         this.renderer.draw(snapshot.cells);
-        this.status.innerHTML = `<span>${snapshot.engine.toUpperCase()} · Gen ${snapshot.generation} · ${snapshot.width}×${snapshot.height}</span><span>Pop ${snapshot.population}</span><span>Births ${snapshot.births}</span><span>Deaths ${snapshot.deaths}</span><span>Δ ${snapshot.delta >= 0 ? "+" : ""}${snapshot.delta}</span><span>Period ${snapshot.period ?? "—"}</span>`;
+        this.status.innerHTML = `<span>Gen ${snapshot.generation} · ${snapshot.width}×${snapshot.height}</span><span>Pop ${snapshot.population}</span><span>Births ${snapshot.births}</span><span>Deaths ${snapshot.deaths}</span><span>Δ ${snapshot.delta >= 0 ? "+" : ""}${snapshot.delta}</span><span>Period ${snapshot.period ?? "—"}</span>`;
         this.syncStepButtons();
       },
     );
@@ -52,21 +51,12 @@ export class GameController {
   }
 
   async start(): Promise<void> {
-    await this.session.start(this.config.engine);
+    await this.session.start();
   }
 
-  private async createEngine(kind: EngineKind, config: GameConfig): Promise<LifeEngine> {
-    try {
-      if (kind === "wasm") {
-        await initWasm();
-        return new WasmLifeEngine(config);
-      }
-      return new JsLifeEngine(config);
-    } catch (error) {
-      console.warn("WASM failed; falling back to JS", error);
-      this.setActiveChoice("engine", "js");
-      return new JsLifeEngine({ ...config, engine: "js" });
-    }
+  private async createEngine(config: GameConfig): Promise<LifeEngine> {
+    await initWasm();
+    return new WasmLifeEngine(config);
   }
 
   private bindControls(canvas: HTMLCanvasElement) {
@@ -107,16 +97,6 @@ export class GameController {
     }
     this.root.querySelector<HTMLButtonElement>("#showcase")!.onclick = () => this.loadShowcase();
 
-    for (const button of this.root.querySelectorAll<HTMLButtonElement>("[data-engine]")) {
-      button.onclick = async () => {
-        const engine = button.dataset.engine as EngineKind;
-        this.setActiveChoice("engine", engine);
-        await this.session.switchEngine(engine);
-        this.renderer.resize(this.config);
-        this.session.randomize();
-        this.syncPlayButton();
-      };
-    }
     for (const button of this.root.querySelectorAll<HTMLButtonElement>("[data-rule]")) {
       button.onclick = async () => {
         const rule = button.dataset.rule as keyof typeof RULE_PRESETS;
@@ -313,7 +293,7 @@ export class GameController {
     toggle.setAttribute("aria-label", collapsed ? "Show controls" : "Hide controls");
   }
 
-  private setActiveChoice(group: "engine" | "rule", value: string) {
+  private setActiveChoice(group: "rule", value: string) {
     for (const button of this.root.querySelectorAll<HTMLButtonElement>(`[data-${group}]`)) {
       const isActive = button.dataset[group] === value;
       button.classList.toggle("is-active", isActive);
@@ -523,14 +503,6 @@ export class GameController {
             <span id="active-rule-name">${activeRule.label}</span>
             <small id="active-rule-summary">${activeRule.summary}</small>
           </button>
-        </section>
-
-        <section class="engine-card">
-          <span class="engine-label">engine</span>
-          <div class="engine-toggle" role="group" aria-label="Engine">
-            <button type="button" class="choice is-active" data-engine="wasm" aria-pressed="true">Rust</button>
-            <button type="button" class="choice" data-engine="js" aria-pressed="false">TS</button>
-          </div>
         </section>
 
         <section class="notice-card" aria-label="Developed by Mustafa Mohsen. Copyright 2026 Mustafa Mohsen. MIT License.">

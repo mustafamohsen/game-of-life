@@ -4,7 +4,6 @@ import { PlaySession } from "./PlaySession";
 import type { LifeEngine } from "../engines/LifeEngine";
 
 class FakeEngine implements LifeEngine {
-  readonly kind = "js" as const;
   cells = new Uint8Array(4);
   steps = 0;
   cleared = false;
@@ -42,11 +41,31 @@ const config = (): GameConfig => ({
   ...DEFAULT_CONFIG,
   width: 2,
   height: 2,
-  engine: "js",
   randomDensity: 0.4,
 });
 
 describe("PlaySession", () => {
+  it("propagates engine initialization failures without emitting a snapshot", async () => {
+    const failure = new Error("WASM failed to load");
+    let snapshots = 0;
+    let attempts = 0;
+    const session = new PlaySession(
+      config(),
+      async () => {
+        attempts++;
+        throw failure;
+      },
+      () => snapshots++,
+      (() => 1) as typeof window.setInterval,
+      (() => {}) as typeof window.clearInterval,
+    );
+
+    await expect(session.start()).rejects.toBe(failure);
+    expect(attempts).toBe(1);
+    expect(snapshots).toBe(0);
+    expect(session.isPlaying()).toBe(false);
+  });
+
   it("starts by creating an engine, randomizing, and emitting a generation-zero snapshot", async () => {
     const engine = new FakeEngine();
     const snapshots: Array<{ generation: number; cells: Uint8Array }> = [];
@@ -58,7 +77,7 @@ describe("PlaySession", () => {
       (() => {}) as typeof window.clearInterval,
     );
 
-    await session.start("js");
+    await session.start();
 
     expect(engine.randomizedWith).toBe(0.4);
     expect(snapshots.at(-1)?.generation).toBe(0);
@@ -75,7 +94,7 @@ describe("PlaySession", () => {
       (() => 1) as typeof window.setInterval,
       (() => {}) as typeof window.clearInterval,
     );
-    await session.switchEngine("js");
+    await session.rebuild();
 
     session.step();
     session.step();
@@ -95,7 +114,7 @@ describe("PlaySession", () => {
       (() => 1) as typeof window.setInterval,
       (() => {}) as typeof window.clearInterval,
     );
-    await session.switchEngine("js");
+    await session.rebuild();
 
     session.setCell(0, 0, true);
     const startingCells = new Uint8Array(engine.cells);
@@ -124,7 +143,7 @@ describe("PlaySession", () => {
         clearedTimer = timer;
       }) as typeof window.clearInterval,
     );
-    await session.switchEngine("js");
+    await session.rebuild();
 
     session.play();
     session.clear();
@@ -144,7 +163,7 @@ describe("PlaySession", () => {
       (() => 1) as typeof window.setInterval,
       (() => {}) as typeof window.clearInterval,
     );
-    await session.switchEngine("js");
+    await session.rebuild();
 
     session.setCell(0, 0, true);
     session.setCell(1, 1, true);
@@ -163,7 +182,7 @@ describe("PlaySession", () => {
       (() => 1) as typeof window.setInterval,
       (() => {}) as typeof window.clearInterval,
     );
-    await session.switchEngine("js");
+    await session.rebuild();
 
     session.setCell(0, 0, true);
     session.setCell(1, 1, true);
@@ -172,7 +191,7 @@ describe("PlaySession", () => {
     expect(historyLengths).toEqual([1, 2, 3, 1]);
   });
 
-  it("stops the timer before awaiting an engine switch and mutates the shared config", async () => {
+  it("stops the timer before awaiting a rebuild and passes the shared config", async () => {
     const sharedConfig = config();
     const engine = new FakeEngine();
     const order: string[] = [];
@@ -182,7 +201,8 @@ describe("PlaySession", () => {
     });
     const session = new PlaySession(
       sharedConfig,
-      async () => {
+      async (receivedConfig) => {
+        expect(receivedConfig).toBe(sharedConfig);
         order.push("factory");
         return pendingEngine;
       },
@@ -192,14 +212,13 @@ describe("PlaySession", () => {
     );
     session.play();
 
-    const switching = session.switchEngine("wasm");
+    const rebuilding = session.rebuild();
     expect(order).toEqual(["clear-timer", "factory"]);
-    expect(sharedConfig.engine).toBe("js");
+    expect(session.isPlaying()).toBe(false);
 
     resolveEngine?.(engine);
-    await switching;
+    await rebuilding;
 
-    expect(sharedConfig.engine).toBe("js");
     expect(order).toEqual(["clear-timer", "factory", "snapshot"]);
   });
 
@@ -222,7 +241,7 @@ describe("PlaySession", () => {
       (() => 1) as typeof window.setInterval,
       (() => {}) as typeof window.clearInterval,
     );
-    await session.switchEngine("js");
+    await session.rebuild();
 
     mutateDuringEdit = true;
     session.setCell(0, 0, true);
@@ -244,7 +263,7 @@ describe("PlaySession", () => {
       (() => 1) as typeof window.setInterval,
       (() => {}) as typeof window.clearInterval,
     );
-    await session.switchEngine("js");
+    await session.rebuild();
 
     for (let generation = 0; generation < 501; generation++) session.step();
 

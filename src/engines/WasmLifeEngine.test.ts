@@ -3,43 +3,41 @@ import { DEFAULT_CONFIG } from "../app/Config";
 
 const memory = new WebAssembly.Memory({ initial: 1 });
 const calls: string[] = [];
-const init = vi.fn().mockResolvedValue({ memory });
-
-class MockUniverse {
-  width() {
-    return 3;
-  }
-  height() {
-    return 2;
-  }
-  step() {
-    calls.push("step");
-  }
-  clear() {
-    calls.push("clear");
-  }
-  randomize(density: number) {
-    calls.push(`randomize:${density}`);
-  }
-  set_cell(x: number, y: number, alive: boolean) {
-    calls.push(`set:${x},${y},${alive}`);
-  }
-  toggle_cell(x: number, y: number) {
-    calls.push(`toggle:${x},${y}`);
-  }
-  cells_ptr() {
-    return 8;
-  }
-  len() {
-    return 6;
-  }
-}
 
 vi.mock("../../wasm-engine/pkg/wasm_engine.js", () => ({
-  default: init,
-  Universe: MockUniverse,
+  default: vi.fn(async () => ({ memory })),
+  Universe: class MockUniverse {
+    width() {
+      return 3;
+    }
+    height() {
+      return 2;
+    }
+    step() {
+      calls.push("step");
+    }
+    clear() {
+      calls.push("clear");
+    }
+    randomize(density: number) {
+      calls.push(`randomize:${density}`);
+    }
+    set_cell(x: number, y: number, alive: boolean) {
+      calls.push(`set:${x},${y},${alive}`);
+    }
+    toggle_cell(x: number, y: number) {
+      calls.push(`toggle:${x},${y}`);
+    }
+    cells_ptr() {
+      return 8;
+    }
+    len() {
+      return 6;
+    }
+  },
 }));
 
+import init from "../../wasm-engine/pkg/wasm_engine.js";
 import { initWasm, WasmLifeEngine } from "./WasmLifeEngine";
 
 describe("WasmLifeEngine", () => {

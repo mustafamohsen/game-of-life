@@ -1,14 +1,13 @@
-import type { EngineKind, GameConfig } from "./Config";
+import type { GameConfig } from "./Config";
 import type { LifeEngine } from "../engines/LifeEngine";
 import { StatsTimeline, type StatsEvent, type StatsSample } from "./StatsTimeline";
 
-export type EngineFactory = (kind: EngineKind, config: GameConfig) => Promise<LifeEngine>;
+export type EngineFactory = (config: GameConfig) => Promise<LifeEngine>;
 
 type TransitionStats = Omit<StatsSample, "generation" | "event">;
 type TimelineMode = "append" | "reset" | "none";
 
 export type SessionSnapshot = {
-  engine: EngineKind;
   generation: number;
   width: number;
   height: number;
@@ -51,25 +50,19 @@ export class PlaySession {
     ),
   ) {}
 
-  async start(kind: EngineKind = this.config.engine): Promise<void> {
-    await this.switchEngine(kind);
+  async start(): Promise<void> {
+    await this.rebuild();
     this.randomize();
   }
 
-  async switchEngine(kind: EngineKind): Promise<EngineKind> {
+  async rebuild(): Promise<void> {
     this.stop();
-    this.engine = await this.createEngine(kind, this.config);
-    this.config.engine = this.engine.kind;
+    this.engine = await this.createEngine(this.config);
     this.generation = 0;
     this.previousCells = undefined;
     this.rewindStack.length = 0;
     this.seenStates.clear();
     this.emit(true, "reset", "rebuild");
-    return this.engine.kind;
-  }
-
-  async rebuild(): Promise<void> {
-    await this.switchEngine(this.config.engine);
   }
 
   play(): void {
@@ -174,7 +167,6 @@ export class PlaySession {
     else if (timelineMode === "append") this.statsTimeline.append(sample);
 
     this.onSnapshot({
-      engine: this.config.engine,
       generation: this.generation,
       width: this.config.width,
       height: this.config.height,

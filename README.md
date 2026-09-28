@@ -4,7 +4,7 @@
 
 A small Conway's Game of Life playground for the browser.
 
-It has a TypeScript UI, a canvas renderer, and a Rust WebAssembly engine for the simulation. If WASM does not load, it falls back to the TypeScript engine.
+It has a TypeScript UI, a canvas renderer, and a Rust WebAssembly engine for the simulation. WebAssembly is required; the engine runs automatically with no selector or fallback.
 
 ## What you can do
 

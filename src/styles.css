@@ -544,50 +544,6 @@ input[type="range"]::-moz-range-thumb {
   border-color: rgba(77, 157, 255, 0.42);
   background: rgba(77, 157, 255, 0.08);
 }
-.engine-card {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.65rem;
-  margin: 0 0.12rem;
-  padding: 0.08rem 0.1rem;
-  color: #687381;
-}
-.engine-label {
-  text-transform: uppercase;
-  letter-spacing: 0.16em;
-  font-size: 0.54rem;
-}
-.engine-toggle {
-  display: flex;
-  align-items: center;
-  gap: 0.18rem;
-  border: 1px solid rgba(77, 157, 255, 0.12);
-  border-radius: 999px;
-  padding: 0.16rem;
-  background: rgba(8, 11, 16, 0.42);
-}
-.engine-toggle .choice {
-  border: 0;
-  border-radius: 999px;
-  background: transparent;
-  color: #778392;
-  padding: 0.25rem 0.48rem;
-  font-size: 0.6rem;
-  line-height: 1;
-  text-align: center;
-}
-.engine-toggle .choice:hover {
-  transform: none;
-  background: rgba(77, 157, 255, 0.06);
-  color: #aeb7c2;
-}
-.engine-toggle .choice.is-active {
-  background: rgba(77, 157, 255, 0.13);
-  color: #c4cbd3;
-  border: 0;
-  box-shadow: none;
-}
 .pattern-library {
   width: min(860px, calc(100vw - 2rem));
   max-height: min(760px, calc(100vh - 2rem));

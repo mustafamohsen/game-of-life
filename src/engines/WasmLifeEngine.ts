@@ -13,7 +13,6 @@ export async function initWasm(): Promise<void> {
 }
 
 export class WasmLifeEngine implements LifeEngine {
-  readonly kind = "wasm" as const;
   private readonly universe: Universe;
 
   constructor(config: GameConfig) {
